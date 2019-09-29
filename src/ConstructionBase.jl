@@ -5,9 +5,56 @@ export setproperties
 """
     constructor_of(T::Type)
 
-Return an object `T2` that can be used to construct objects of type `T`
-from their field values. Typically `T2` will be a supertype of `T`, but
-this is not guaranteed.
+Return an object `ctor` that can be used to construct objects of type `T`
+from their field values. Typically `ctor` will be the type `T` with all parameters removed:
+```jldoctest
+julia> struct T{A,B};a::A;b::B;end
+
+julia> constructor_of(T{Int,Int})
+T
+```
+It is however not guaranteed, that `ctor` is a type at all:
+```jldoctest
+julia> struct S
+           a
+           b
+           checksum
+           S(a,b) = new(a,b,a+b)
+       end
+
+julia> ConstructionBase.constructor_of(S) = (a,b,checksum) -> (@assert a+b == checksum; S(a,b))
+
+julia> constructor_of(S)(1,2)
+S(1, 2, 3)
+```
+Instead `ctor` can be any object that satisfies the following properties:
+* It must be possible to reconstruct an object from its fields:
+```julia
+ctor = constructor_of(typeof(obj))
+@assert obj == ctor(fieldvalues(obj)...)
+@assert typeof(obj) == typeof(ctor(fieldvalues(obj)...))
+```
+* The other direction should hold for as many values of `args` as possible:
+```julia
+ctor = constructor_of(T)
+fieldvalues(ctor(args...)) == args
+```
+For instance given a suitable parametric type it should be possible to change
+the type of its fields:
+```jldoctest
+julia> using ConstructionBase: constructor_of
+
+julia> struct T{A,B};a::A;b::B;end
+
+julia> t = T(1,2)
+T{Int64,Int64}(1, 2)
+
+julia> constructor_of(typeof(t))(1.0, 2)
+T{Float64,Int64}(1.0, 2)
+
+julia> constructor_of(typeof(t))(10, 2)
+T{Int64,Int64}(10, 2)
+```
 """
 @generated function constructor_of(::Type{T}) where T
     getfield(parentmodule(T), nameof(T))
