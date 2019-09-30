@@ -9,6 +9,7 @@ end
 
 @testset "constructorof" begin
     @test constructorof(Empty)() === Empty()
+    @inferred constructorof(AB{Int, Int})
     @test constructorof(AB{Int, Int})(1, 2) === AB(1,2)
     @test constructorof(AB{Int, Int})(1.0, 2) === AB(1.0,2)
 end
@@ -26,4 +27,9 @@ end
 
     @test setproperties((a=1, b=2), (a=1.0,)) === (a=1.0, b=2)
     @test setproperties((a=1, b=2), a=1.0) === (a=1.0, b=2)
+
+    @inferred setproperties(o, a=2, b=3.0)
+    @inferred setproperties(Empty(), NamedTuple())
+    @inferred setproperties((a=1, b=2), a=1.0)
+    @inferred setproperties((a=1, b=2), (a=1.0,))
 end
