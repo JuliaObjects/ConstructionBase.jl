@@ -1,6 +1,5 @@
 using ConstructionBase
 using Test
-using ConstructionBase: constructorof
 
 struct Empty end
 struct AB{A,B}
