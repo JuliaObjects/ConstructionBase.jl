@@ -6,12 +6,12 @@ makedocs(;
     pages=[
         "Home" => "index.md",
     ],
-    repo="https://github.com/jw3126/ConstructionBase.jl/blob/{commit}{path}#L{line}",
+    repo="https://github.com/JuliaObjects/ConstructionBase.jl/blob/{commit}{path}#L{line}",
     sitename="ConstructionBase.jl",
-    authors="["Takafumi Arakaki", "Rafael Schouten", "Jan Weidner"]",
+    authors=["Takafumi Arakaki", "Rafael Schouten", "Jan Weidner"],
     assets=String[],
 )
 
 deploydocs(;
-    repo="github.com/jw3126/ConstructionBase.jl",
+    repo="github.com/JuliaObjects/ConstructionBase.jl",
 )
