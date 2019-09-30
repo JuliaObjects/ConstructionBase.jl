@@ -11,5 +11,5 @@ setproperties(obj::MyType, patch)
 constructorof(MyType)
 ```
 These functions can be overloaded and doing so provides interoperability the following packages:
-* [Flatten.jl]*(https://github.com/rafaqz/Flatten.jl)
+* [Flatten.jl](https://github.com/rafaqz/Flatten.jl)
 * [Setfield.jl](https://github.com/jw3126/Setfield.jl)
