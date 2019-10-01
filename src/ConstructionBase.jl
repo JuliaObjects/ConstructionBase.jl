@@ -29,10 +29,14 @@ julia> struct S
            S(a,b) = new(a,b,a+b)
        end
 
-julia> ConstructionBase.constructorof(S) = (a,b,checksum) -> (@assert a+b == checksum; S(a,b))
+julia> ConstructionBase.constructorof(::Type{<:S}) =
+           (a, b, checksum=a+b) -> (@assert a+b == checksum; S(a,b))
 
 julia> constructorof(S)(1,2)
 S(1, 2, 3)
+
+julia> constructorof(S)(1,2,4)
+ERROR: AssertionError: a + b == checksum
 ```
 Instead `ctor` can be any object that satisfies the following properties:
 * It must be possible to reconstruct an object from its fields:
