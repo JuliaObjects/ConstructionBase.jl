@@ -26,7 +26,7 @@ julia&gt; constructorof(typeof(t))(1.0, 2)
 T{Float64,Int64}(1.0, 2)
 
 julia&gt; constructorof(typeof(t))(10, 2)
-T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/a5383cd9a2dcb1e25e77d7683d00692d2f8d0e4c/src/ConstructionBase.jl#LL7-L60">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/f3cf74ab2f5a5c89f9eadeef94a5c6d96f3bd680/src/ConstructionBase.jl#LL7-L60">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
 
 julia&gt; struct S;a;b;c; end
 
@@ -43,4 +43,4 @@ julia&gt; o = S(10, 2, 4)
 S(10, 2, 4)
 
 julia&gt; setproperties(o, a=&quot;A&quot;, c=&quot;cc&quot;)
-S(&quot;A&quot;, 2, &quot;cc&quot;)</code></pre><p><strong>Overloading</strong></p><p><strong>WARNING</strong> The signature <code>setproperties(obj::MyType; kw...)</code> should never be overloaded. Instead <code>setproperties(obj::MyType, patch)</code> should be overloaded.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/a5383cd9a2dcb1e25e77d7683d00692d2f8d0e4c/src/ConstructionBase.jl#LL74-L115">source</a></section><footer><hr/></footer></article></body></html>
+S(&quot;A&quot;, 2, &quot;cc&quot;)</code></pre><p><strong>Overloading</strong></p><p><strong>WARNING</strong> The signature <code>setproperties(obj::MyType; kw...)</code> should never be overloaded. Instead <code>setproperties(obj::MyType, patch)</code> should be overloaded.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/f3cf74ab2f5a5c89f9eadeef94a5c6d96f3bd680/src/ConstructionBase.jl#LL74-L115">source</a></section><footer><hr/></footer></article></body></html>
