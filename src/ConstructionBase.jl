@@ -72,7 +72,7 @@ function assert_hasfields(T, fnames)
 end
 
 """
-    setproperties(obj, patch)
+    setproperties(obj, patch::NamedTuple)
 
 Return a copy of `obj` with attributes updates accoring to `patch`.
 
@@ -111,7 +111,7 @@ S("A", 2, "cc")
 # Overloading
 
 **WARNING** The signature `setproperties(obj::MyType; kw...)` should never be overloaded.
-Instead `setproperties(obj::MyType, patch)` should be overloaded.
+Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
 """
 function setproperties end
 
@@ -119,7 +119,7 @@ function setproperties(obj; kw...)
     setproperties(obj, (;kw...))
 end
 
-@generated function setproperties(obj, patch)
+@generated function setproperties(obj, patch::NamedTuple)
     assert_hasfields(obj, fieldnames(patch))
     args = map(fieldnames(obj)) do fn
         if fn in fieldnames(patch)
@@ -134,7 +134,7 @@ end
     )
 end
 
-@generated function setproperties(obj::NamedTuple, patch)
+@generated function setproperties(obj::NamedTuple, patch::NamedTuple)
     # this function is only generated to force the following check
     # at compile time
     assert_hasfields(obj, fieldnames(patch))

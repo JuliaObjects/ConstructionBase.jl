@@ -7,7 +7,7 @@
 
 ConstructionBase is a very lightwight package, that provides primitive functions for construction of objects:
 ```julia
-setproperties(obj::MyType, patch)
+setproperties(obj::MyType, patch::NamedTuple)
 constructorof(MyType)
 ```
 These functions can be overloaded and doing so provides interoperability the following packages:
