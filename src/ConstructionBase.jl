@@ -10,13 +10,15 @@ export constructorof
 Return an object `ctor` that can be used to construct objects of type `T`
 from their field values. Typically `ctor` will be the type `T` with all parameters removed:
 ```jldoctest
+julia> using ConstructionBase
+
 julia> struct T{A,B};a::A;b::B;end
 
 julia> constructorof(T{Int,Int})
 T
 ```
 It is however not guaranteed, that `ctor` is a type at all:
-```jldoctest
+```jldoctest; setup = :(using ConstructionBase)
 julia> struct S
            a
            b
@@ -43,9 +45,7 @@ fieldvalues(ctor(args...)) == args
 ```
 For instance given a suitable parametric type it should be possible to change
 the type of its fields:
-```jldoctest
-julia> using ConstructionBase: constructorof
-
+```jldoctest; setup = :(using ConstructionBase)
 julia> struct T{A,B};a::A;b::B;end
 
 julia> t = T(1,2)
@@ -99,6 +99,8 @@ keywords:
 
 # Examples
 ```jldoctest
+julia> using ConstructionBase
+
 julia> struct S;a;b;c; end
 
 julia> o = S(10, 2, 4)

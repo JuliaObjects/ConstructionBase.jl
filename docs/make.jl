@@ -9,7 +9,7 @@ makedocs(;
     repo="https://github.com/JuliaObjects/ConstructionBase.jl/blob/{commit}{path}#L{line}",
     sitename="ConstructionBase.jl",
     authors="Takafumi Arakaki, Rafael Schouten, Jan Weidner",
-    assets=String[],
+    strict=true,
 )
 
 deploydocs(;
