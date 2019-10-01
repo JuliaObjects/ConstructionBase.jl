@@ -10,13 +10,18 @@ export constructorof
 Return an object `ctor` that can be used to construct objects of type `T`
 from their field values. Typically `ctor` will be the type `T` with all parameters removed:
 ```jldoctest
-julia> struct T{A,B};a::A;b::B;end
+julia> using ConstructionBase
+
+julia> struct T{A,B}
+           a::A
+           b::B
+       end
 
 julia> constructorof(T{Int,Int})
 T
 ```
 It is however not guaranteed, that `ctor` is a type at all:
-```jldoctest
+```jldoctest; setup = :(using ConstructionBase)
 julia> struct S
            a
            b
@@ -24,10 +29,14 @@ julia> struct S
            S(a,b) = new(a,b,a+b)
        end
 
-julia> ConstructionBase.constructorof(S) = (a,b,checksum) -> (@assert a+b == checksum; S(a,b))
+julia> ConstructionBase.constructorof(::Type{<:S}) =
+           (a, b, checksum=a+b) -> (@assert a+b == checksum; S(a,b))
 
 julia> constructorof(S)(1,2)
 S(1, 2, 3)
+
+julia> constructorof(S)(1,2,4)
+ERROR: AssertionError: a + b == checksum
 ```
 Instead `ctor` can be any object that satisfies the following properties:
 * It must be possible to reconstruct an object from its fields:
@@ -43,10 +52,11 @@ fieldvalues(ctor(args...)) == args
 ```
 For instance given a suitable parametric type it should be possible to change
 the type of its fields:
-```jldoctest
-julia> using ConstructionBase: constructorof
-
-julia> struct T{A,B};a::A;b::B;end
+```jldoctest; setup = :(using ConstructionBase)
+julia> struct T{A,B}
+           a::A
+           b::B
+       end
 
 julia> t = T(1,2)
 T{Int64,Int64}(1, 2)
@@ -80,7 +90,11 @@ Return a copy of `obj` with attributes updates accoring to `patch`.
 ```jldoctest
 julia> using ConstructionBase
 
-julia> struct S;a;b;c; end
+julia> struct S
+           a
+           b
+           c
+       end
 
 julia> s = S(1,2,3)
 S(1, 2, 3)
@@ -99,6 +113,8 @@ keywords:
 
 # Examples
 ```jldoctest
+julia> using ConstructionBase
+
 julia> struct S;a;b;c; end
 
 julia> o = S(10, 2, 4)
