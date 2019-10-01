@@ -140,25 +140,29 @@ For any valid set of properties `p₁, p₂, ..., pₙ`, following equalities mu
 
 * You get what you set.
 
-let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ))
-    @assert obj′.$p₁ == v₁
-    @assert obj′.$p₂ == v₂
+```julia
+let obj′ = setproperties(obj, (\$p₁=v₁, \$p₂=v₂, ..., \$pₙ=vₙ))
+    @assert obj′.\$p₁ == v₁
+    @assert obj′.\$p₂ == v₂
     ...
-    @assert obj′.$pₙ == vₙ
+    @assert obj′.\$pₙ == vₙ
 end
+```
 
 * Setting what was already there changes nothing:
 
-`@assert setproperties(obj, ($p₁=obj.$p₁, $p₂=obj.$p₂, ..., $pₙ=obj.$pₙ)) == obj`
+```julia
+@assert setproperties(obj, (\$p₁=obj.\$p₁, \$p₂=obj.\$p₂, ..., \$pₙ=obj.\$pₙ)) == obj
+```
 
 * The last set wins:
 ```julia
-let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ)),
-    obj′′ = setproperties(obj′, ($p₁=w₁, $p₂=w₂, ..., $pₙ=wₙ))
-    @assert obj′′.$p₁ == w₁
-    @assert obj′′.$p₂ == w₂
+let obj′ = setproperties(obj, (\$p₁=v₁, \$p₂=v₂, ..., \$pₙ=vₙ)),
+    obj′′ = setproperties(obj′, (\$p₁=w₁, \$p₂=w₂, ..., \$pₙ=wₙ))
+    @assert obj′′.\$p₁ == w₁
+    @assert obj′′.\$p₂ == w₂
     ...
-    @assert obj′′.$pₙ == wₙ
+    @assert obj′′.\$pₙ == wₙ
 end
 ```
 """
