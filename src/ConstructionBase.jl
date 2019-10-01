@@ -12,7 +12,10 @@ from their field values. Typically `ctor` will be the type `T` with all paramete
 ```jldoctest
 julia> using ConstructionBase
 
-julia> struct T{A,B};a::A;b::B;end
+julia> struct T{A,B}
+           a::A
+           b::B
+       end
 
 julia> constructorof(T{Int,Int})
 T
@@ -46,7 +49,10 @@ fieldvalues(ctor(args...)) == args
 For instance given a suitable parametric type it should be possible to change
 the type of its fields:
 ```jldoctest; setup = :(using ConstructionBase)
-julia> struct T{A,B};a::A;b::B;end
+julia> struct T{A,B}
+           a::A
+           b::B
+       end
 
 julia> t = T(1,2)
 T{Int64,Int64}(1, 2)
@@ -80,7 +86,11 @@ Return a copy of `obj` with attributes updates accoring to `patch`.
 ```jldoctest
 julia> using ConstructionBase
 
-julia> struct S;a;b;c; end
+julia> struct S
+           a
+           b
+           c
+       end
 
 julia> s = S(1,2,3)
 S(1, 2, 3)
