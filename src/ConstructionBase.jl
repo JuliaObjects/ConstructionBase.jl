@@ -74,7 +74,16 @@ end
 
 constructorof(::Type{<:Tuple}) = tuple
 constructorof(::Type{<:NamedTuple{names}}) where names =
-    NamedTuple{names} ∘ tuple
+    NamedTupleConstructor{names}()
+
+struct NamedTupleConstructor{names} end
+
+@generated function (::NamedTupleConstructor{names})(args...) where names
+    quote
+        Base.@_inline_meta
+        $(NamedTuple{names, Tuple{args...}})(args)
+    end
+end
 
 function assert_hasfields(T, fnames)
     for fname in fnames
