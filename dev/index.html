@@ -36,7 +36,7 @@ julia&gt; constructorof(typeof(t))(1.0, 2)
 T{Float64,Int64}(1.0, 2)
 
 julia&gt; constructorof(typeof(t))(10, 2)
-T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/ee593e596eb7b54e3cec9257b5f839862c165373/src/ConstructionBase.jl#LL7-L70">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/702347f4838468ecfc21200cf57b5c7fff7b06da/src/ConstructionBase.jl#LL7-L70">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
 
 julia&gt; struct S
            a
@@ -59,4 +59,15 @@ julia&gt; o = S(10, 2, 4)
 S(10, 2, 4)
 
 julia&gt; setproperties(o, a=&quot;A&quot;, c=&quot;cc&quot;)
-S(&quot;A&quot;, 2, &quot;cc&quot;)</code></pre><p><strong>Overloading</strong></p><p><strong>WARNING</strong> The signature <code>setproperties(obj::MyType; kw...)</code> should never be overloaded. Instead <code>setproperties(obj::MyType, patch::NamedTuple)</code> should be overloaded.</p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/ee593e596eb7b54e3cec9257b5f839862c165373/src/ConstructionBase.jl#LL84-L131">source</a></section><footer><hr/></footer></article></body></html>
+S(&quot;A&quot;, 2, &quot;cc&quot;)</code></pre><p><strong>Overloading</strong></p><p><strong>WARNING</strong> The signature <code>setproperties(obj::MyType; kw...)</code> should never be overloaded. Instead <code>setproperties(obj::MyType, patch::NamedTuple)</code> should be overloaded.</p><p><strong>Specification</strong></p><p><code>setproperties</code> guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:</p><ol><li>Purity: <code>setproperties</code> is supposed to have no side effects. In particular <code>setproperties(obj, patch::NamedTuple)</code> may not mutate <code>obj</code>.</li><li>Relation to <code>propertynames</code> and <code>fieldnames</code>: <code>setproperties</code> relates to <code>propertynames</code> and <code>getproperty</code>, not to <code>fieldnames</code> and <code>getfield</code>.</li></ol><p>This means that any subset <code>p₁, p₂, ..., pₙ</code> of <code>propertynames(obj)</code> is a valid set of properties, with respect to which the lens laws below must hold.</p><ol><li><code>setproperties</code> should satisfy the lens laws:</li></ol><p>For any valid set of properties <code>p₁, p₂, ..., pₙ</code>, following equalities must hold:</p><ul><li>You get what you set.</li></ul><pre><code class="language-julia">let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ))
+    @assert obj′.$p₁ == v₁
+    @assert obj′.$p₂ == v₂
+    ...
+    @assert obj′.$pₙ == vₙ
+end</code></pre><ul><li>Setting what was already there changes nothing:</li></ul><pre><code class="language-julia">@assert setproperties(obj, ($p₁=obj.$p₁, $p₂=obj.$p₂, ..., $pₙ=obj.$pₙ)) == obj</code></pre><ul><li>The last set wins:</li></ul><pre><code class="language-julia">let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ)),
+    obj′′ = setproperties(obj′, ($p₁=w₁, $p₂=w₂, ..., $pₙ=wₙ))
+    @assert obj′′.$p₁ == w₁
+    @assert obj′′.$p₂ == w₂
+    ...
+    @assert obj′′.$pₙ == wₙ
+end</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/702347f4838468ecfc21200cf57b5c7fff7b06da/src/ConstructionBase.jl#LL84-L168">source</a></section><footer><hr/></footer></article></body></html>
