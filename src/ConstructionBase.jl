@@ -126,8 +126,45 @@ S("A", 2, "cc")
 
 # Overloading
 
-**WARNING** The signature `setproperties(obj::MyType; kw...)` should never be overloaded.
-Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
+**WARNING** The signature `setproperties(obj::MyType; kw...)` should never be overloaded. Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
+
+# Specification
+
+`setproperties` guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:
+
+1. Purity: `setproperties` is supposed to have no side effects. In particular `setproperties(obj, patch::NamedTuple)` may not mutate `obj`.
+2. Relation to `propertynames` and `fieldnames`: `setproperties` relates to `propertynames` and `getproperty`, not to `fieldnames` and `getfield`.
+This means that any subset `p₁, p₂, ..., pₙ` of `propertynames(obj)` is a valid set of properties, with respect to which the lens laws below must hold.
+3. `setproperties` should satisfy the lens laws:
+For any valid set of properties `p₁, p₂, ..., pₙ`, following equalities must hold:
+
+* You get what you set.
+
+```julia
+let obj′ = setproperties(obj, (\$p₁=v₁, \$p₂=v₂, ..., \$pₙ=vₙ))
+    @assert obj′.\$p₁ == v₁
+    @assert obj′.\$p₂ == v₂
+    ...
+    @assert obj′.\$pₙ == vₙ
+end
+```
+
+* Setting what was already there changes nothing:
+
+```julia
+@assert setproperties(obj, (\$p₁=obj.\$p₁, \$p₂=obj.\$p₂, ..., \$pₙ=obj.\$pₙ)) == obj
+```
+
+* The last set wins:
+```julia
+let obj′ = setproperties(obj, (\$p₁=v₁, \$p₂=v₂, ..., \$pₙ=vₙ)),
+    obj′′ = setproperties(obj′, (\$p₁=w₁, \$p₂=w₂, ..., \$pₙ=wₙ))
+    @assert obj′′.\$p₁ == w₁
+    @assert obj′′.\$p₂ == w₂
+    ...
+    @assert obj′′.\$pₙ == wₙ
+end
+```
 """
 function setproperties end
 
