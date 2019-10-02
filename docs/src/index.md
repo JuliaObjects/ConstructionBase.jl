@@ -3,6 +3,8 @@
 ```@index
 ```
 
-```@autodocs
-Modules = [ConstructionBase]
+```@docs
+ConstructionBase
+ConstructionBase.constructorof
+ConstructionBase.setproperties
 ```
