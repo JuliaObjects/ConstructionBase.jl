@@ -1,7 +1,7 @@
-    constructorof(T::Type)
+    constructorof(T::Type) -> constructor
 
-Return an object `ctor` that can be used to construct objects of type `T`
-from their field values. Typically `ctor` will be the type `T` with all parameters removed:
+Return an object `constructor` that can be used to construct objects of type `T`
+from their field values. Typically `constructor` will be the type `T` with all parameters removed:
 ```jldoctest
 julia> using ConstructionBase
 
@@ -13,7 +13,7 @@ julia> struct T{A,B}
 julia> constructorof(T{Int,Int})
 T
 ```
-It is however not guaranteed, that `ctor` is a type at all:
+It is however not guaranteed, that `constructor` is a type at all:
 ```jldoctest; setup = :(using ConstructionBase)
 julia> struct S
            a
@@ -31,7 +31,7 @@ S(1, 2, 3)
 julia> constructorof(S)(1,2,4)
 ERROR: AssertionError: a + b == checksum
 ```
-Instead `ctor` can be any object that satisfies the following properties:
+Instead `constructor` can be any object that satisfies the following properties:
 * It must be possible to reconstruct an object from its fields:
 ```julia
 ctor = constructorof(typeof(obj))
