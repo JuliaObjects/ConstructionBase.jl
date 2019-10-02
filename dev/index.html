@@ -36,7 +36,7 @@ julia&gt; constructorof(typeof(t))(1.0, 2)
 T{Float64,Int64}(1.0, 2)
 
 julia&gt; constructorof(typeof(t))(10, 2)
-T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/702347f4838468ecfc21200cf57b5c7fff7b06da/src/ConstructionBase.jl#LL7-L70">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/bf245e254959c2744c1541c65c4640fe9b492779/src/ConstructionBase.jl#LL7-L70">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
 
 julia&gt; struct S
            a
@@ -70,4 +70,4 @@ end</code></pre><ul><li>Setting what was already there changes nothing:</li></ul
     @assert obj′′.$p₂ == w₂
     ...
     @assert obj′′.$pₙ == wₙ
-end</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/702347f4838468ecfc21200cf57b5c7fff7b06da/src/ConstructionBase.jl#LL84-L168">source</a></section><footer><hr/></footer></article></body></html>
+end</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/bf245e254959c2744c1541c65c4640fe9b492779/src/ConstructionBase.jl#LL97-L181">source</a></section><footer><hr/></footer></article></body></html>
