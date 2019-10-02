@@ -72,6 +72,10 @@ T{Int64,Int64}(10, 2)
     getfield(parentmodule(T), nameof(T))
 end
 
+constructorof(::Type{<:Tuple}) = tuple
+constructorof(::Type{<:NamedTuple{names}}) where names =
+    NamedTuple{names} ∘ tuple
+
 function assert_hasfields(T, fnames)
     for fname in fnames
         if !(fname in fieldnames(T))

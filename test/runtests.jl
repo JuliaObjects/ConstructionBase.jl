@@ -12,6 +12,10 @@ end
     @inferred constructorof(AB{Int, Int})
     @test constructorof(AB{Int, Int})(1, 2) === AB(1,2)
     @test constructorof(AB{Int, Int})(1.0, 2) === AB(1.0,2)
+    @test constructorof(typeof((a=1, b=2)))(1.0, 2) === (a=1.0, b=2)
+    @test constructorof(NamedTuple{(:a, :b)})(1.0, 2) === (a=1.0, b=2)
+    @test constructorof(Tuple)(1.0, 2) === (1.0, 2)
+    @test constructorof(Tuple{Nothing, Missing})(1.0, 2) === (1.0, 2)
 end
 
 @testset "setproperties" begin
