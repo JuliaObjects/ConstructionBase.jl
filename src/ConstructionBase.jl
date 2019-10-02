@@ -53,18 +53,32 @@ function setproperties(obj; kw...)
 end
 
 @generated function setproperties(obj, patch::NamedTuple)
-    assert_hasfields(obj, fieldnames(patch))
-    args = map(fieldnames(obj)) do fn
-        if fn in fieldnames(patch)
-            :(patch.$fn)
-        else
-            :(obj.$fn)
+    if issubset(fieldnames(patch), fieldnames(obj))
+        args = map(fieldnames(obj)) do fn
+            if fn in fieldnames(patch)
+                :(patch.$fn)
+            else
+                :(obj.$fn)
+            end
         end
+        return Expr(:block,
+            Expr(:meta, :inline),
+            Expr(:call,:(constructorof($obj)), args...)
+        )
+    else
+        :(setproperties_unknown_field_error(obj, patch))
     end
-    Expr(:block,
-        Expr(:meta, :inline),
-        Expr(:call,:(constructorof($obj)), args...)
-    )
+end
+
+function setproperties_unknown_field_error(obj, patch)
+    O = typeof(obj)
+    P = typeof(patch)
+    msg = """
+    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
+    You may want to overload
+    ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
+    """
+    throw(ArgumentError(msg))
 end
 
 
