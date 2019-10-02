@@ -154,15 +154,5 @@ end
     )
 end
 
-@generated function setproperties(obj::NamedTuple, patch::NamedTuple)
-    # this function is only generated to force the following check
-    # at compile time
-    assert_hasfields(obj, fieldnames(patch))
-    Expr(:block,
-        Expr(:meta, :inline),
-        :(merge(obj, patch))
-    )
-end
-
 
 end # module
