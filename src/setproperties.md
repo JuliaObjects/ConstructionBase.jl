@@ -31,7 +31,11 @@ keywords:
 ```jldoctest
 julia> using ConstructionBase
 
-julia> struct S;a;b;c; end
+julia> struct S
+           a
+           b
+           c
+       end
 
 julia> o = S(10, 2, 4)
 S(10, 2, 4)
@@ -40,18 +44,29 @@ julia> setproperties(o, a="A", c="cc")
 S("A", 2, "cc")
 ```
 
-# Overloading
+# Implementation
 
-**WARNING** The signature `setproperties(obj::MyType; kw...)` should never be overloaded. Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
+For a custom type `MyType`, a method `setproperties(obj::MyType, patch::NamedTuple)`
+may be defined.
 
-# Specification
+* Prefer to overload [`constructorof`](@ref) whenever makes sense (e.g., no `getproperty`
+  method is defined).  Default `setproperties` is defined in terms of `constructorof`.
+
+* If `getproperty` is customized, it may be a good idea to define `setproperties`.
+
+!!! warning
+    The signature `setproperties(obj::MyType; kw...)` should never be overloaded.
+    Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
+
+## Specification
 
 `setproperties` guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:
 
 1. Purity: `setproperties` is supposed to have no side effects. In particular `setproperties(obj, patch::NamedTuple)` may not mutate `obj`.
 2. Relation to `propertynames` and `fieldnames`: `setproperties` relates to `propertynames` and `getproperty`, not to `fieldnames` and `getfield`.
-This means that any subset `p₁, p₂, ..., pₙ` of `propertynames(obj)` is a valid set of properties, with respect to which the lens laws below must hold.
+   This means that any subset `p₁, p₂, ..., pₙ` of `propertynames(obj)` is a valid set of properties, with respect to which the lens laws below must hold.
 3. `setproperties` should satisfy the lens laws:
+
 For any valid set of properties `p₁, p₂, ..., pₙ`, following equalities must hold:
 
 * You get what you set.
