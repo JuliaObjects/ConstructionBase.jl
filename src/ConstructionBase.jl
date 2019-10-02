@@ -39,15 +39,6 @@ struct NamedTupleConstructor{names} end
     end
 end
 
-function assert_hasfields(T, fnames)
-    for fname in fnames
-        if !(fname in fieldnames(T))
-            msg = "$T has no field $fname"
-            throw(ArgumentError(msg))
-        end
-    end
-end
-
 function setproperties(obj; kw...)
     setproperties(obj, (;kw...))
 end
