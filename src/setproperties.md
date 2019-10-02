@@ -40,11 +40,21 @@ julia> setproperties(o, a="A", c="cc")
 S("A", 2, "cc")
 ```
 
-# Overloading
+# Implementation
 
-**WARNING** The signature `setproperties(obj::MyType; kw...)` should never be overloaded. Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
+For a custom type `MyType`, a method `setproperties(obj::MyType, patch::NamedTuple)`
+may be defined.
 
-# Specification
+* Prefer to overload [`constructorof`](@ref) whenever makes sense (e.g., no `getproperty`
+  method is defined).  Default `setproperties` is defined in terms of `constructorof`.
+
+* If `getproperty` is customized, it may be a good idea to define `setproperties`.
+
+!!! warning
+    The signature `setproperties(obj::MyType; kw...)` should never be overloaded.
+    Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
+
+## Specification
 
 `setproperties` guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:
 
