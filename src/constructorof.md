@@ -60,3 +60,5 @@ T{Float64,Int64}(1.0, 2)
 julia> constructorof(typeof(t))(10, 2)
 T{Int64,Int64}(10, 2)
 ```
+
+See also [Tips section in the manual](@ref type-tips)
