@@ -11,7 +11,7 @@ ConstructionBase is a very lightwight package, that provides primitive functions
 setproperties(obj::MyType, patch::NamedTuple)
 constructorof(MyType)
 ```
-These functions can be overloaded and doing so provides interoperability the following packages:
+These functions can be overloaded and doing so provides interoperability with the following packages:
 * [Flatten.jl](https://github.com/rafaqz/Flatten.jl)
 * [Setfield.jl](https://github.com/jw3126/Setfield.jl)
 * [BangBang.jl](https://github.com/tkf/BangBang.jl)
