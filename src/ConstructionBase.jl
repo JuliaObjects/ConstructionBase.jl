@@ -3,6 +3,8 @@ module ConstructionBase
 export setproperties
 export constructorof
 
+using Base: tail
+
 # Use markdown files as docstring:
 for (name, path) in [
     :ConstructionBase => joinpath(dirname(@__DIR__), "README.md"),
@@ -43,22 +45,29 @@ function setproperties(obj; kw...)
     setproperties(obj, (;kw...))
 end
 
-@generated function setproperties(obj, patch::NamedTuple)
-    if issubset(fieldnames(patch), fieldnames(obj))
-        args = map(fieldnames(obj)) do fn
-            if fn in fieldnames(patch)
-                :(patch.$fn)
-            else
-                :(obj.$fn)
-            end
-        end
-        return Expr(:block,
-            Expr(:meta, :inline),
-            Expr(:call,:(constructorof($obj)), args...)
-        )
-    else
-        :(setproperties_unknown_field_error(obj, patch))
+@generated __fieldnames__(::Type{T}) where T = fieldnames(T)
+
+@inline _issubset(::Tuple{}, _) = true
+@inline _issubset(xs::Tuple, ys) = inargs(xs[1], ys...) && _issubset(tail(xs), ys)
+@inline inargs(x) = false
+@inline inargs(x, y, ys...) = x === y || inargs(x, ys...)
+
+@inline foldlargs(op, x) = x
+@inline foldlargs(op, x1, x2, xs...) = foldlargs(op, op(x1, x2), xs...)
+
+@inline function setproperties(obj, patch::NamedTuple{pnames}) where pnames
+    fnames = __fieldnames__(typeof(obj))
+    if !_issubset(pnames, fnames)
+        setproperties_unknown_field_error(obj, patch)
     end
+    fields = foldlargs((), fnames...) do fields, name
+        if inargs(name, pnames...)
+            (fields..., patch[name])
+        else
+            (fields..., getfield(obj, name))
+        end
+    end
+    return constructorof(typeof(obj))(fields...)
 end
 
 function setproperties_unknown_field_error(obj, patch)
