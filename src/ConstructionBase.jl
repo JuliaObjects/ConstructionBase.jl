@@ -47,6 +47,7 @@ end
 
 @generated __fieldnames__(::Type{T}) where T = fieldnames(T)
 
+@inline _value(::Val{x}) where x = x
 @inline _issubset(::Tuple{}, _) = true
 @inline _issubset(xs::Tuple, ys) = inargs(xs[1], ys...) && _issubset(tail(xs), ys)
 @inline inargs(x) = false
@@ -55,16 +56,17 @@ end
 @inline foldlargs(op, x) = x
 @inline foldlargs(op, x1, x2, xs...) = foldlargs(op, op(x1, x2), xs...)
 
-@inline function setproperties(obj, patch::NamedTuple{pnames}) where pnames
-    fnames = __fieldnames__(typeof(obj))
+@inline function setproperties(obj, patch::NamedTuple{pnames′}) where pnames′
+    pnames = map(Val, pnames′)
+    fnames = map(Val, __fieldnames__(typeof(obj)))
     if !_issubset(pnames, fnames)
         setproperties_unknown_field_error(obj, patch)
     end
     fields = foldlargs((), fnames...) do fields, name
         if inargs(name, pnames...)
-            (fields..., patch[name])
+            (fields..., patch[_value(name)])
         else
-            (fields..., getfield(obj, name))
+            (fields..., getfield(obj, _value(name)))
         end
     end
     return constructorof(typeof(obj))(fields...)
