@@ -13,14 +13,15 @@ ConstructionBase.setproperties
 
 ## [Tips for designing types](@id type-tips)
 
-When designing types from scratch, it is recommended to structure the types in
-such a way that overloading `constructorof` or `setproperties` is unnecessary in
-the first place.  For simple `struct`s whose type parameters can be determined
-from field values, `ConstructionBase` works without any customization, provided
-that the "type-less" constructor exists.  However, it is often useful or
-required to have type parameters that cannot be determined from field values.
-One way to solve this problem is to define singleton types that would determine
-the type parameters:
+When designing types from scratch, it is often possible to structure the types
+in such a way that overloading `constructorof` or `setproperties` is unnecessary
+in the first place.  It let types in your package work nicely with the ecosystem
+built on top of `ConstructionBase` even without explicitly depending on it.
+For simple `struct`s whose type parameters can be determined from field values,
+`ConstructionBase` works without any customization, provided that the "type-less"
+constructor exists.  However, it is often useful or required to have type
+parameters that cannot be determined from field values. One way to solve this
+problem is to define singleton types that would determine the type parameters:
 
 ```jldoctest tips
 abstract type OutputBy end
