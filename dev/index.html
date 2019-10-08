@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · ConstructionBase.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>ConstructionBase.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li class="current"><a class="toctext" href>Home</a><ul class="internal"></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Home</a></li></ul><a class="edit-page" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/master/docs/src/index.md#L"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Home</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="ConstructionBase.jl-1" href="#ConstructionBase.jl-1">ConstructionBase.jl</a></h1><ul><li><a href="#ConstructionBase"><code>ConstructionBase</code></a></li><li><a href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a></li><li><a href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a></li></ul><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase" href="#ConstructionBase"><code>ConstructionBase</code></a> — <span class="docstring-category">Module</span>.</div><div><div><p><strong>ConstructionBase</strong></p><p><a href="https://JuliaObjects.github.io/ConstructionBase.jl/stable"><img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="Stable"/></a> <a href="https://JuliaObjects.github.io/ConstructionBase.jl/dev"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Dev"/></a> <a href="https://travis-ci.com/JuliaObjects/ConstructionBase.jl"><img src="https://travis-ci.com/JuliaObjects/ConstructionBase.jl.svg?branch=master" alt="Build Status"/></a> <a href="https://codecov.io/gh/JuliaObjects/ConstructionBase.jl"><img src="https://codecov.io/gh/JuliaObjects/ConstructionBase.jl/branch/master/graph/badge.svg" alt="Codecov"/></a> <a href="https://github.com/JuliaObjects/ConstructionBase.jl"><img src="https://img.shields.io/github/stars/JuliaObjects/ConstructionBase.jl?style=social" alt="GitHub stars"/></a></p><p>ConstructionBase is a very lightwight package, that provides primitive functions for construction of objects:</p><pre><code class="language-julia">setproperties(obj::MyType, patch::NamedTuple)
-constructorof(MyType)</code></pre><p>These functions can be overloaded and doing so provides interoperability with the following packages:</p><ul><li><a href="https://github.com/rafaqz/Flatten.jl">Flatten.jl</a></li><li><a href="https://github.com/jw3126/Setfield.jl">Setfield.jl</a></li><li><a href="https://github.com/tkf/BangBang.jl">BangBang.jl</a></li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/23937e938dfd2d21b4a079d3d192ec6542d4d7f4/src/ConstructionBase.jl#LL19-L37">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.constructorof" href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">constructorof(T::Type) -&gt; constructor</code></pre><p>Return an object <code>constructor</code> that can be used to construct objects of type <code>T</code> from their field values. Typically <code>constructor</code> will be the type <code>T</code> with all parameters removed:</p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · ConstructionBase.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>ConstructionBase.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li class="current"><a class="toctext" href>Home</a><ul class="internal"><li><a class="toctext" href="#Interface-1">Interface</a></li><li><a class="toctext" href="#type-tips-1">Tips for designing types</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Home</a></li></ul><a class="edit-page" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/master/docs/src/index.md#L"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Home</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="ConstructionBase.jl-1" href="#ConstructionBase.jl-1">ConstructionBase.jl</a></h1><ul><li><a href="#ConstructionBase"><code>ConstructionBase</code></a></li><li><a href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a></li><li><a href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a></li></ul><h2><a class="nav-anchor" id="Interface-1" href="#Interface-1">Interface</a></h2><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase" href="#ConstructionBase"><code>ConstructionBase</code></a> — <span class="docstring-category">Module</span>.</div><div><div><p><strong>ConstructionBase</strong></p><p><a href="https://JuliaObjects.github.io/ConstructionBase.jl/stable"><img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="Stable"/></a> <a href="https://JuliaObjects.github.io/ConstructionBase.jl/dev"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Dev"/></a> <a href="https://travis-ci.com/JuliaObjects/ConstructionBase.jl"><img src="https://travis-ci.com/JuliaObjects/ConstructionBase.jl.svg?branch=master" alt="Build Status"/></a> <a href="https://codecov.io/gh/JuliaObjects/ConstructionBase.jl"><img src="https://codecov.io/gh/JuliaObjects/ConstructionBase.jl/branch/master/graph/badge.svg" alt="Codecov"/></a> <a href="https://github.com/JuliaObjects/ConstructionBase.jl"><img src="https://img.shields.io/github/stars/JuliaObjects/ConstructionBase.jl?style=social" alt="GitHub stars"/></a></p><p>ConstructionBase is a very lightwight package, that provides primitive functions for construction of objects:</p><pre><code class="language-julia">setproperties(obj::MyType, patch::NamedTuple)
+constructorof(MyType)</code></pre><p>These functions can be overloaded and doing so provides interoperability with the following packages:</p><ul><li><a href="https://github.com/rafaqz/Flatten.jl">Flatten.jl</a></li><li><a href="https://github.com/jw3126/Setfield.jl">Setfield.jl</a></li><li><a href="https://github.com/tkf/BangBang.jl">BangBang.jl</a></li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/b3f1f790ebd99598dd486dfe2a8b4708f1c5c854/src/ConstructionBase.jl#LL19-L37">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.constructorof" href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">constructorof(T::Type) -&gt; constructor</code></pre><p>Return an object <code>constructor</code> that can be used to construct objects of type <code>T</code> from their field values. Typically <code>constructor</code> will be the type <code>T</code> with all parameters removed:</p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
 
 julia&gt; struct T{A,B}
            a::A
@@ -37,7 +37,7 @@ julia&gt; constructorof(typeof(t))(1.0, 2)
 T{Float64,Int64}(1.0, 2)
 
 julia&gt; constructorof(typeof(t))(10, 2)
-T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/23937e938dfd2d21b4a079d3d192ec6542d4d7f4/src/ConstructionBase.jl#LL19-L82">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+T{Int64,Int64}(10, 2)</code></pre><p>See also <a href="#type-tips-1">Tips section in the manual</a></p></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/b3f1f790ebd99598dd486dfe2a8b4708f1c5c854/src/ConstructionBase.jl#LL19-L84">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
 
 julia&gt; struct S
            a
@@ -75,4 +75,63 @@ end</code></pre><ul><li>Setting what was already there changes nothing:</li></ul
     @assert obj′′.$p₂ == w₂
     ...
     @assert obj′′.$pₙ == wₙ
-end</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/23937e938dfd2d21b4a079d3d192ec6542d4d7f4/src/ConstructionBase.jl#LL19-L118">source</a></section><footer><hr/></footer></article></body></html>
+end</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/b3f1f790ebd99598dd486dfe2a8b4708f1c5c854/src/ConstructionBase.jl#LL19-L118">source</a></section><h2><a class="nav-anchor" id="type-tips-1" href="#type-tips-1">Tips for designing types</a></h2><p>When designing types from scratch, it is often possible to structure the types in such a way that overloading <code>constructorof</code> or <code>setproperties</code> is unnecessary in the first place.  It let types in your package work nicely with the ecosystem built on top of <code>ConstructionBase</code> even without explicitly depending on it. For simple <code>struct</code>s whose type parameters can be determined from field values, <code>ConstructionBase</code> works without any customization, provided that the &quot;type-less&quot; constructor exists.  However, it is often useful or required to have type parameters that cannot be determined from field values. One way to solve this problem is to define singleton types that would determine the type parameters:</p><pre><code class="language-julia">abstract type OutputBy end
+struct Mutating &lt;: OutputBy end
+struct Returning &lt;: OutputBy end
+
+struct Add{O &lt;: OutputBy, T}
+    outputby::O
+    value::T
+end
+
+(f::Add{Mutating})(y, x) = y .= x .+ f.value
+(f::Add{Returning})(x) = x .+ f.value
+
+add1! = Add(Mutating(), 1)
+
+using ConstructionBase
+add2 = constructorof(typeof(add1!))(Returning(), 2)
+add2(1)
+
+# output
+
+3</code></pre><p><code>setproperties</code> works as well:</p><pre><code class="language-julia">add3 = setproperties(add2; value=3)
+add3(1)
+
+# output
+
+4</code></pre><p>Note that no overloading of <code>ConstructionBase</code> functions was required. Importantly, this also provides an interface to change type parameters out-of-the-box:</p><pre><code class="language-julia">add3! = setproperties(add3; outputby=Mutating())
+add3!([0], 1)
+
+# output
+
+1-element Array{Int64,1}:
+ 4</code></pre><p>Furthermore, it would work with packages depending on <code>ConstructionBase</code> such as <a href="https://github.com/jw3126/Setfield.jl">Setfield.jl</a>.</p><pre><code class="language-julia">using Setfield: @set
+add3′ = @set add3!.outputby = Returning()
+add3′ === add3
+
+# output
+
+true</code></pre><div class="admonition note"><div class="admonition-title">Note</div><div class="admonition-text"><p>If it is desirable to keep fields as an implementation detail, combining trait functions and <a href="https://jw3126.github.io/Setfield.jl/latest/#Setfield.FunctionLens"><code>Setfield.FunctionLens</code></a> may be useful:</p><pre><code class="language-julia">OutputBy(x) = typeof(x)
+OutputBy(::Type{&lt;:Add{O}}) where O = O()
+
+using Setfield: Setfield, @lens
+Setfield.set(add::Add, ::typeof(@lens OutputBy(_)), o::OutputBy) =
+    @set add.outputby = o
+
+obj = (add=add3!,)
+obj′ = @set OutputBy(obj.add) = Returning()
+obj′ === (add=add3,)
+
+# output
+
+true</code></pre><pre><code class="language-julia">Setfield.set(::Type{Add{O0, T}}, ::typeof(@lens OutputBy(_)), ::O1) where {O0, T, O1 &lt;: OutputBy} =
+    Add{O1, T}
+
+T1 = typeof(add3!)
+T2 = @set OutputBy(T1) = Returning()
+T2 &lt;: Add{Returning}
+
+# output
+
+true</code></pre></div></div><footer><hr/></footer></article></body></html>
