@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · ConstructionBase.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link href="assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>ConstructionBase.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li class="current"><a class="toctext" href>Home</a><ul class="internal"></ul></li></ul></nav><article id="docs"><header><nav><ul><li><a href>Home</a></li></ul><a class="edit-page" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/master/docs/src/index.md#L"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Home</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="ConstructionBase.jl-1" href="#ConstructionBase.jl-1">ConstructionBase.jl</a></h1><ul><li><a href="#ConstructionBase"><code>ConstructionBase</code></a></li><li><a href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a></li><li><a href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a></li></ul><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase" href="#ConstructionBase"><code>ConstructionBase</code></a> — <span class="docstring-category">Module</span>.</div><div><div><p><strong>ConstructionBase</strong></p><p><a href="https://JuliaObjects.github.io/ConstructionBase.jl/stable"><img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="Stable"/></a> <a href="https://JuliaObjects.github.io/ConstructionBase.jl/dev"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Dev"/></a> <a href="https://travis-ci.com/JuliaObjects/ConstructionBase.jl"><img src="https://travis-ci.com/JuliaObjects/ConstructionBase.jl.svg?branch=master" alt="Build Status"/></a> <a href="https://codecov.io/gh/JuliaObjects/ConstructionBase.jl"><img src="https://codecov.io/gh/JuliaObjects/ConstructionBase.jl/branch/master/graph/badge.svg" alt="Codecov"/></a> <a href="https://github.com/JuliaObjects/ConstructionBase.jl"><img src="https://img.shields.io/github/stars/JuliaObjects/ConstructionBase.jl?style=social" alt="GitHub stars"/></a></p><p>ConstructionBase is a very lightwight package, that provides primitive functions for construction of objects:</p><pre><code class="language-julia">setproperties(obj::MyType, patch::NamedTuple)
+constructorof(MyType)</code></pre><p>These functions can be overloaded and doing so provides interoperability with the following packages:</p><ul><li><a href="https://github.com/rafaqz/Flatten.jl">Flatten.jl</a></li><li><a href="https://github.com/jw3126/Setfield.jl">Setfield.jl</a></li><li><a href="https://github.com/tkf/BangBang.jl">BangBang.jl</a></li></ul></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/23937e938dfd2d21b4a079d3d192ec6542d4d7f4/src/ConstructionBase.jl#LL19-L37">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.constructorof" href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">constructorof(T::Type) -&gt; constructor</code></pre><p>Return an object <code>constructor</code> that can be used to construct objects of type <code>T</code> from their field values. Typically <code>constructor</code> will be the type <code>T</code> with all parameters removed:</p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+
+julia&gt; struct T{A,B}
+           a::A
+           b::B
+       end
+
+julia&gt; constructorof(T{Int,Int})
+T</code></pre><p>It is however not guaranteed, that <code>constructor</code> is a type at all:</p><pre><code class="language-julia-repl">julia&gt; struct S
+           a
+           b
+           checksum
+           S(a,b) = new(a,b,a+b)
+       end
+
+julia&gt; ConstructionBase.constructorof(::Type{&lt;:S}) =
+           (a, b, checksum=a+b) -&gt; (@assert a+b == checksum; S(a,b))
+
+julia&gt; constructorof(S)(1,2)
+S(1, 2, 3)
+
+julia&gt; constructorof(S)(1,2,4)
+ERROR: AssertionError: a + b == checksum</code></pre><p>Instead <code>constructor</code> can be any object that satisfies the following properties:</p><ul><li>It must be possible to reconstruct an object from its fields:</li></ul><pre><code class="language-julia">ctor = constructorof(typeof(obj))
+@assert obj == ctor(fieldvalues(obj)...)
+@assert typeof(obj) == typeof(ctor(fieldvalues(obj)...))</code></pre><ul><li>The other direction should hold for as many values of <code>args</code> as possible:</li></ul><pre><code class="language-julia">ctor = constructorof(T)
+fieldvalues(ctor(args...)) == args</code></pre><p>For instance given a suitable parametric type it should be possible to change the type of its fields:</p><pre><code class="language-julia-repl">julia&gt; struct T{A,B}
+           a::A
+           b::B
+       end
+
+julia&gt; t = T(1,2)
+T{Int64,Int64}(1, 2)
+
+julia&gt; constructorof(typeof(t))(1.0, 2)
+T{Float64,Int64}(1.0, 2)
+
+julia&gt; constructorof(typeof(t))(10, 2)
+T{Int64,Int64}(10, 2)</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/23937e938dfd2d21b4a079d3d192ec6542d4d7f4/src/ConstructionBase.jl#LL19-L82">source</a></section><section class="docstring"><div class="docstring-header"><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span>.</div><div><div><pre><code class="language-julia">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with attributes updates accoring to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+
+julia&gt; struct S
+           a
+           b
+           c
+       end
+
+julia&gt; s = S(1,2,3)
+S(1, 2, 3)
+
+julia&gt; setproperties(s, (a=10,c=4))
+S(10, 2, 4)
+
+julia&gt; setproperties((a=1,c=2,b=3), (a=10,c=4))
+(a = 10, c = 4, b = 3)</code></pre><p>There is also a convenience method, which builds the <code>patch</code> argument from keywords:</p><pre><code class="language-none">setproperties(obj; kw...)</code></pre><p><strong>Examples</strong></p><pre><code class="language-julia-repl">julia&gt; using ConstructionBase
+
+julia&gt; struct S
+           a
+           b
+           c
+       end
+
+julia&gt; o = S(10, 2, 4)
+S(10, 2, 4)
+
+julia&gt; setproperties(o, a=&quot;A&quot;, c=&quot;cc&quot;)
+S(&quot;A&quot;, 2, &quot;cc&quot;)</code></pre><p><strong>Implementation</strong></p><p>For a custom type <code>MyType</code>, a method <code>setproperties(obj::MyType, patch::NamedTuple)</code> may be defined.</p><ul><li><p>Prefer to overload <a href="#ConstructionBase.constructorof"><code>constructorof</code></a> whenever makes sense (e.g., no <code>getproperty</code> method is defined).  Default <code>setproperties</code> is defined in terms of <code>constructorof</code>.</p></li><li><p>If <code>getproperty</code> is customized, it may be a good idea to define <code>setproperties</code>.</p></li></ul><div class="admonition warning"><div class="admonition-title">Warning</div><div class="admonition-text"><p>The signature <code>setproperties(obj::MyType; kw...)</code> should never be overloaded. Instead <code>setproperties(obj::MyType, patch::NamedTuple)</code> should be overloaded.</p></div></div><p><strong>Specification</strong></p><p><code>setproperties</code> guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:</p><ol><li>Purity: <code>setproperties</code> is supposed to have no side effects. In particular <code>setproperties(obj, patch::NamedTuple)</code> may not mutate <code>obj</code>.</li><li>Relation to <code>propertynames</code> and <code>fieldnames</code>: <code>setproperties</code> relates to <code>propertynames</code> and <code>getproperty</code>, not to <code>fieldnames</code> and <code>getfield</code>. This means that any subset <code>p₁, p₂, ..., pₙ</code> of <code>propertynames(obj)</code> is a valid set of properties, with respect to which the lens laws below must hold.</li><li><code>setproperties</code> should satisfy the lens laws:</li></ol><p>For any valid set of properties <code>p₁, p₂, ..., pₙ</code>, following equalities must hold:</p><ul><li>You get what you set.</li></ul><pre><code class="language-julia">let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ))
+    @assert obj′.$p₁ == v₁
+    @assert obj′.$p₂ == v₂
+    ...
+    @assert obj′.$pₙ == vₙ
+end</code></pre><ul><li>Setting what was already there changes nothing:</li></ul><pre><code class="language-julia">@assert setproperties(obj, ($p₁=obj.$p₁, $p₂=obj.$p₂, ..., $pₙ=obj.$pₙ)) == obj</code></pre><ul><li>The last set wins:</li></ul><pre><code class="language-julia">let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ)),
+    obj′′ = setproperties(obj′, ($p₁=w₁, $p₂=w₂, ..., $pₙ=wₙ))
+    @assert obj′′.$p₁ == w₁
+    @assert obj′′.$p₂ == w₂
+    ...
+    @assert obj′′.$pₙ == wₙ
+end</code></pre></div></div><a class="source-link" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/23937e938dfd2d21b4a079d3d192ec6542d4d7f4/src/ConstructionBase.jl#LL19-L118">source</a></section><footer><hr/></footer></article></body></html>
