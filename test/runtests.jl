@@ -47,3 +47,36 @@ end
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
 end
+
+mutable struct TwoMutableInts
+    a::Int
+    b::Int
+end
+
+struct TwoImmutableInts
+    a::Int
+    b::Int
+end
+
+@testset "setproperties!" begin
+    o = TwoMutableInts(1,2)
+    o2 = @inferred setproperties!(o, (a=10, b=20))
+    @test o2 isa TwoMutableInts
+    @test o2.a === 10
+    @test o2.b === 20
+
+    @test o.a === 10
+    @test o.b === 20
+end
+
+@testset "setproperties!!" begin
+    o = TwoImmutableInts(1,2)
+    o2 = @inferred setproperties!!(o, (a=10, b=20))
+    @test o2 === TwoImmutableInts(10, 20)
+
+    o = TwoMutableInts(1,2)
+    o2 = @inferred setproperties!!(o, (a=10, b=20))
+    @test o2 isa TwoMutableInts
+    @test o2.a === 10
+    @test o2.b === 20
+end

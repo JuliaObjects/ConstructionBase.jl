@@ -1,7 +1,8 @@
 module ConstructionBase
 
-export setproperties
+export setproperties, setproperties!, setproperties!!
 export constructorof
+
 
 # Use markdown files as docstring:
 for (name, path) in [
@@ -72,5 +73,26 @@ function setproperties_unknown_field_error(obj, patch)
     throw(ArgumentError(msg))
 end
 
+function setproperties!(obj, patch::NamedTuple)
+    _setproperties!(obj, pairs(patch)...)
+end
+
+_setproperties!(obj) = obj
+
+function _setproperties!(obj, (key, val), tail...)
+    Base.setproperty!(obj, key, val)
+    _setproperties!(obj, tail...)
+end
+
+ismutablestruct(x) = ismutablestruct(typeof(x))
+Base.@pure ismutablestruct(T::DataType) = T.mutable
+
+function setproperties!!(obj, patch::NamedTuple)
+    if ismutablestruct(obj)
+        setproperties!(obj, patch)
+    else
+        setproperties(obj, patch)
+    end
+end
 
 end # module
