@@ -36,6 +36,8 @@ end
     @test occursin("overload", msg)
     @test occursin("ConstructionBase.setproperties", msg)
 
+    @test setproperties(42, NamedTuple()) === 42
+    @test setproperties(42) === 42
     @test setproperties(Empty(), NamedTuple()) === Empty()
     @test setproperties(Empty()) === Empty()
 
