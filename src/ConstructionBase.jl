@@ -43,8 +43,10 @@ function setproperties(obj; kw...)
     setproperties(obj, (;kw...))
 end
 
-setproperties(obj, patch::typeof(NamedTuple())) = obj
-@generated function setproperties(obj, patch::NamedTuple)
+setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
+
+_setproperties(obj, patch::typeof(NamedTuple())) = obj
+@generated function _setproperties(obj, patch::NamedTuple)
     if issubset(fieldnames(patch), fieldnames(obj))
         args = map(fieldnames(obj)) do fn
             if fn in fieldnames(patch)

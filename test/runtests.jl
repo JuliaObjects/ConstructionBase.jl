@@ -38,6 +38,7 @@ end
 
     @test setproperties(42, NamedTuple()) === 42
     @test setproperties(42) === 42
+
     @test setproperties(Empty(), NamedTuple()) === Empty()
     @test setproperties(Empty()) === Empty()
 
@@ -48,4 +49,25 @@ end
     @inferred setproperties(Empty(), NamedTuple())
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
+end
+
+struct CustomSetproperties
+    _a::Int
+end
+function ConstructionBase.setproperties(o::CustomSetproperties, patch::NamedTuple)
+    if isempty(patch)
+        o
+    elseif propertynames(patch) == (:a,)
+        CustomSetproperties(patch.a)
+    else
+        error()
+    end
+end
+
+@testset "custom setproperties unambiguous on empty" begin
+    o = CustomSetproperties(1)
+    @test o === setproperties(o)
+    @test o === setproperties(o, NamedTuple())
+    @test CustomSetproperties(2) === setproperties(o, a=2)
+    @test CustomSetproperties(2) === setproperties(o, (a=2,))
 end
