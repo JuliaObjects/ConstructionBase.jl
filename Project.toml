@@ -3,6 +3,9 @@ uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
 authors = ["Takafumi Arakaki", "Rafael Schouten", "Jan Weidner"]
 version = "1.0.0"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+
 [compat]
 julia = "1"
 

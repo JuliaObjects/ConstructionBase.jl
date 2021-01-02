@@ -1,0 +1,54 @@
+using LinearAlgebra
+
+### SubArray
+# `offset1` and `stride1` fields are calculated from parent indices.
+# Setting them has no effect.
+subarray_constructor(parent, indices, args...) = view(parent, indices...)
+
+constructorof(::Type{<:SubArray}) = subarray_constructor
+
+### ReinterpretArray
+struct ReinterpretArrayConstructor{T} end
+# `readable` and `writeable` are calculated from `T` and `parent`
+# Setting them has no effect.
+function (::ReinterpretArrayConstructor{T})(parent, args...) where T
+    reinterpret(T, parent)
+end
+
+constructorof(::Type{<:Base.ReinterpretArray{T}}) where T = ReinterpretArrayConstructor{T}()
+
+### PermutedDimsArray
+struct PermutedDimsArrayConstructor{N,perm,iperm} end
+# Parent must have the same N - it has to match length(perm)
+function (::PermutedDimsArrayConstructor{N,perm,iperm})(parent::AA
+) where {N,perm,iperm,AA<:AbstractArray{T,N}} where T
+    PermutedDimsArray{T,N,perm,iperm,AA}(parent)
+end
+
+constructorof(::Type{<:PermutedDimsArray{<:Any,N,perm,iperm,<:Any}}) where {N,perm,iperm} =
+    PermutedDimsArrayConstructor{N,perm,iperm}()
+
+### Tridiagonal
+function tridiagonal_constructor(dl::V, d::V, du::V) where {V<:AbstractVector{T}} where T
+    Tridiagonal{T,V}(dl, d, du)
+end
+function tridiagonal_constructor(dl::V, d::V, du::V, du2::V) where {V<:AbstractVector{T}} where T
+    Tridiagonal{T,V}(dl, d, du, du2)
+end
+
+# `du2` may be undefined, so we need a custom `getproperties` that checks `isdefined`
+function getproperties(o::Tridiagonal)
+    if isdefined(o, :du2)
+        (dl=o.dl, d=o.d, du=o.du, du2=o.du2) 
+    else
+        (dl=o.dl, d=o.d, du=o.du)
+    end
+end
+
+constructorof(::Type{<:LinearAlgebra.Tridiagonal}) = tridiagonal_constructor
+
+### LinRange
+# `lendiv` is a calculated field
+linrange_constructor(start, stop, len, lendiv) = LinRange(start, stop, len)
+
+constructorof(::Type{<:LinRange}) = linrange_constructor

@@ -1,5 +1,6 @@
 using ConstructionBase
 using Test
+using LinearAlgebra
 
 struct Empty end
 struct AB{A,B}
@@ -78,3 +79,40 @@ end
     @test CustomSetproperties(2) === setproperties(o, a=2)
     @test CustomSetproperties(2) === setproperties(o, (a=2,))
 end
+
+@testset "Default object constructors" begin
+    A1 = zeros(5, 6)
+    A2 = ones(Float32, 5, 6)
+    @testset "SubArray" begin
+        subarray = view(A1, 1:2, 3:4)
+        fields = map(fn -> getfield(subarray, fn), fieldnames(typeof(subarray)))
+        @test constructorof(typeof(subarray))(fields...) === subarray
+        @test all(constructorof(typeof(subarray))(A2, (Base.OneTo(2), 3:4), 0, 0) .== Float32[1 1; 1 1])
+    end
+    @testset "ReinterpretArray" begin
+        ra1 = reinterpret(Float16, A1)
+        @test constructorof(typeof(ra1))(A1) === ra1
+        ra2 = constructorof(typeof(ra1))(A2)
+        @test size(ra2) == (10, 6)
+        @test eltype(ra2) == Float16
+    end
+    @testset "PermutedDimsArray" begin
+        pda1 = PermutedDimsArray(A1, (2, 1))
+        @test constructorof(typeof(pda1))(A1) === pda1
+        pda2 = constructorof(typeof(pda1))(A2)
+        @test eltype(pda2) == Float32
+    end
+    @testset "Tridiagonal" begin
+        d = randn(12)
+        dl = randn(11)
+        du = randn(11)
+        tda = Tridiagonal(dl, d, du)
+        @test constructorof(typeof(tda))(dl, d, du) === tda
+    end
+    @testset "LinRange" begin
+        lr1 = LinRange(1, 7, 10)
+        @test constructorof(typeof(lr1))(1, 7, 10, nothing) === lr1
+    end
+
+end
+

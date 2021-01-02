@@ -86,5 +86,6 @@ function setproperties_unknown_field_error(obj, patch)
     throw(ArgumentError(msg))
 end
 
+include("nonstandard.jl")
 
 end # module
