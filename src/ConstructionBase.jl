@@ -1,5 +1,6 @@
 module ConstructionBase
 
+export getproperties
 export setproperties
 export constructorof
 
@@ -7,6 +8,7 @@ export constructorof
 for (name, path) in [
     :ConstructionBase => joinpath(dirname(@__DIR__), "README.md"),
     :constructorof => joinpath(@__DIR__, "constructorof.md"),
+    :getproperties => joinpath(@__DIR__, "getproperties.md"),
     :setproperties => joinpath(@__DIR__, "setproperties.md"),
 ]
     # Don't fail when somehow importing docstrings doesn't work (we
@@ -37,6 +39,15 @@ struct NamedTupleConstructor{names} end
         Base.@_inline_meta
         $(NamedTuple{names, Tuple{args...}})(args)
     end
+end
+
+@generated function getproperties(obj)
+    fnames = fieldnames(obj)
+    fvals = map(fnames) do fname
+        Expr(:call, :getproperty, :obj, QuoteNode(fname))
+    end
+    fvals = Expr(:tuple, fvals...)
+    :(NamedTuple{$fnames}($fvals))
 end
 
 function setproperties(obj; kw...)

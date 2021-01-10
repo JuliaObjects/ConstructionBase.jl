@@ -18,6 +18,13 @@ end
     @test constructorof(Tuple{Nothing, Missing})(1.0, 2) === (1.0, 2)
 end
 
+@testset "getproperties" begin
+    o = AB(1, 2)
+    @test getproperties(o) === (a=1, b=2)
+    @inferred getproperties(o)
+    @test getproperties(Empty()) === NamedTuple()
+end
+
 @testset "setproperties" begin
     o = AB(1,2)
     @test setproperties(o, (a=2, b=3))   === AB(2,3)
