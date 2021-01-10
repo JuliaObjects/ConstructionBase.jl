@@ -65,7 +65,11 @@ may be defined.
 1. Purity: `setproperties` is supposed to have no side effects. In particular `setproperties(obj, patch::NamedTuple)` may not mutate `obj`.
 2. Relation to `propertynames` and `fieldnames`: `setproperties` relates to `propertynames` and `getproperty`, not to `fieldnames` and `getfield`.
    This means that any subset `p₁, p₂, ..., pₙ` of `propertynames(obj)` is a valid set of properties, with respect to which the lens laws below must hold.
-3. `setproperties` should satisfy the lens laws:
+3. `setproperties` is defined in relation to `getproperties` so that:
+   ```julia
+   obj == setproperties(obj, getproperties(obj))
+   ```
+4. `setproperties` should satisfy the lens laws:
 
 For any valid set of properties `p₁, p₂, ..., pₙ`, following equalities must hold:
 
