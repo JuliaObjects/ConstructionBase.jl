@@ -15,3 +15,4 @@ These functions can be overloaded and doing so provides interoperability with th
 * [Flatten.jl](https://github.com/rafaqz/Flatten.jl)
 * [Setfield.jl](https://github.com/jw3126/Setfield.jl)
 * [BangBang.jl](https://github.com/tkf/BangBang.jl)
+* [Accessors.jl](https://github.com/JuliaObjects/Accessors.jl)
