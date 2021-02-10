@@ -1,5 +1,6 @@
 using ConstructionBase
 using Test
+using LinearAlgebra
 
 struct Empty end
 struct AB{A,B}
@@ -78,3 +79,65 @@ end
     @test CustomSetproperties(2) === setproperties(o, a=2)
     @test CustomSetproperties(2) === setproperties(o, (a=2,))
 end
+
+@testset "constructors for non-standadard Base and LinearAlgebra etc objects" begin
+    A1 = zeros(5, 6)
+    A2 = ones(Float32, 5, 6)
+
+    @testset "SubArray" begin
+        subarray = view(A1, 1:2, 3:4)
+        @test constructorof(typeof(subarray))(getproperties(subarray)...) === subarray
+        @test all(constructorof(typeof(subarray))(A2, (Base.OneTo(2), 3:4), 0, 0) .== Float32[1 1; 1 1])
+        @inferred constructorof(typeof(subarray))(getproperties(subarray)...)
+        @inferred constructorof(typeof(subarray))(A2, (Base.OneTo(2), 3:4), 0, 0)
+    end
+
+    @testset "ReinterpretArray" begin
+        ra1 = reinterpret(Float16, A1)
+        @test constructorof(typeof(ra1))(A1) === ra1
+        @test constructorof(typeof(ra1))(getproperties(ra1)...) === ra1
+        ra2 = constructorof(typeof(ra1))(A2)
+        @test size(ra2) == (10, 6)
+        @test eltype(ra2) == Float16
+        @inferred constructorof(typeof(ra1))(getproperties(ra1)...)
+        @inferred constructorof(typeof(ra1))(A2)
+    end
+
+    @testset "PermutedDimsArray" begin
+        pda1 = PermutedDimsArray(A1, (2, 1))
+        @test constructorof(typeof(pda1))(A1) === pda1
+        @test constructorof(typeof(pda1))(getproperties(pda1)...) === pda1
+        @test eltype(constructorof(typeof(pda1))(A2)) == Float32
+        @inferred constructorof(typeof(pda1))(getproperties(pda1)...)
+        @inferred constructorof(typeof(pda1))(A2)
+    end
+
+    @testset "Tridiagonal" begin
+        d = randn(12)
+        dl = randn(11)
+        du = randn(11)
+        tda = Tridiagonal(dl, d, du)
+        @test isdefined(tda, :du2) == false
+        @test constructorof(typeof(tda))(dl, d, du) === tda
+        @test constructorof(typeof(tda))(getproperties(tda)...) === tda
+        # lu factorization defines du2
+        tda_lu = lu!(tda).factors
+        @test isdefined(tda_lu, :du2) == true
+        @test constructorof(typeof(tda_lu))(getproperties(tda_lu)...) === tda_lu
+        @test constructorof(typeof(tda_lu))(getproperties(tda)...) !== tda_lu
+        @test constructorof(typeof(tda_lu))(getproperties(tda)...) === tda
+        @inferred constructorof(typeof(tda))(getproperties(tda)...)
+        @inferred constructorof(typeof(tda))(getproperties(tda_lu)...)
+    end
+
+    @testset "LinRange" begin
+        lr1 = LinRange(1, 7, 10)
+        lr2 = LinRange(1.0f0, 7.0f0, 10)
+        @test constructorof(typeof(lr1))(1, 7, 10, nothing) === lr1
+        @test constructorof(typeof(lr1))(getproperties(lr2)...) === lr2
+        @inferred constructorof(typeof(lr1))(getproperties(lr1)...)
+        @inferred constructorof(typeof(lr1))(getproperties(lr2)...)
+    end
+
+end
+
