@@ -16,3 +16,4 @@ These functions can be overloaded and doing so provides interoperability with th
 * [Setfield.jl](https://github.com/jw3126/Setfield.jl)
 * [BangBang.jl](https://github.com/tkf/BangBang.jl)
 * [Accessors.jl](https://github.com/JuliaObjects/Accessors.jl)
+* [ModelParameters.jl](https://github.com/rafaqz/ModelParameters.jl)
