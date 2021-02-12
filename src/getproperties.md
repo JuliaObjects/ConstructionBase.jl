@@ -12,11 +12,11 @@ julia> struct S
            c
        end
 
-julia> s = S(1,2,3)
+julia> s = S(1, 2, 3)
 S(1, 2, 3)
 
 julia> getproperties(s)
-(a = 10, b = 2, c = 4)
+(a = 1, b = 2, c = 3)
 ```
 
 # Implementation
