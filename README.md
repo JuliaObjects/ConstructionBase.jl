@@ -2,7 +2,7 @@
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://JuliaObjects.github.io/ConstructionBase.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://JuliaObjects.github.io/ConstructionBase.jl/dev)
-[![Build Status](https://travis-ci.com/JuliaObjects/ConstructionBase.jl.svg?branch=master)](https://travis-ci.com/JuliaObjects/ConstructionBase.jl)
+[![Build Status](https://github.com/JuliaObjects/ConstructionBase.jl/workflows/CI/badge.svg))](https://github.com/JuliaObjects/ConstructionBase.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/JuliaObjects/ConstructionBase.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/JuliaObjects/ConstructionBase.jl)
 [![GitHub stars](https://img.shields.io/github/stars/JuliaObjects/ConstructionBase.jl?style=social)](https://github.com/JuliaObjects/ConstructionBase.jl)
 
