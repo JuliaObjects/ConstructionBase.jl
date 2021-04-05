@@ -69,7 +69,7 @@ add3!([0], 1)
 
 # output
 
-1-element Array{Int64,1}:
+1-element Vector{Int64}:
  4
 ```
 
