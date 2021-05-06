@@ -141,3 +141,15 @@ end
 
 end
 
+@testset "Anonymous function constructors" begin
+    function multiplyer(a, b)
+        x -> x * a * b
+    end
+
+    mult11 = multiplyer(1, 1)
+    @test mult11(1) === 1
+    mult23 = ConstructionBase.constructorof(typeof(mult11))(2.0, 3.0)
+    @test mult23(1) === 6.0
+    multbc = ConstructionBase.constructorof(typeof(mult23))("b", "c")
+    @test multbc("a") == "abc" 
+end
