@@ -1,5 +1,5 @@
 
-# Anonymous functions have no `new` constructor. Here we generaate
+# Anonymous functions have no `new` constructor. Here we generate
 # one for them based on the types of args passed to FunctionConstructor
 
 struct FunctionConstructor{F} end
@@ -7,7 +7,7 @@ struct FunctionConstructor{F} end
 @generated function (::FunctionConstructor{F})(args...) where F
     T = getfield(parentmodule(F), nameof(F))
     # Fallback for user-defined function objects
-    length(args) == length(F.parameters) || return :($T(args...))
+    (length(args) == length(F.parameters) && F.parameters == F.types) || return :($T(args...))
     # Define `new` for rebuilt function type that matches args
     exp = Expr(:new, Expr(:curly, T, args...))
     for i in 1:length(args)

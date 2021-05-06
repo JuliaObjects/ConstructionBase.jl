@@ -165,6 +165,11 @@ struct Adder2{V} <: Function
 end
 (o::Adder2)(x) = o.value + o.int + x 
 
+struct AddTuple{T} <: Function
+    tuple::Tuple{T,T,T}
+end
+(o::AddTuple)(x) = sum(o.tuple) + x
+
 @testset "Custom function object constructors" begin
     add1 = Adder(1)
     @test add1(1) === 2
@@ -174,4 +179,9 @@ end
     @test add12(3) ==  6
     add22 = ConstructionBase.constructorof(typeof(add12))(2.0, 2)
     @test add22(3) ==  7.0
+
+    addtuple123 = AddTuple((1, 2, 3))
+    @test addtuple123(1) === 7
+    addtuple234 = ConstructionBase.constructorof(typeof(addtuple123))((2.0, 3.0, 4.0))
+    @test addtuple234(1) === 10.0
 end
