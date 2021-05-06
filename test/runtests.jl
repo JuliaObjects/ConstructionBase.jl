@@ -153,3 +153,25 @@ end
     multbc = ConstructionBase.constructorof(typeof(mult23))("b", "c")
     @test multbc("a") == "abc" 
 end
+
+struct Adder{V} <: Function
+    value::V
+end
+(o::Adder)(x) = o.value + x
+
+struct Adder2{V} <: Function
+    value::V
+    int::Int
+end
+(o::Adder2)(x) = o.value + o.int + x 
+
+@testset "Custom function object constructors" begin
+    add1 = Adder(1)
+    @test add1(1) === 2
+    add2 = ConstructionBase.constructorof(typeof(add1))(2.0)
+    @test add2(1) === 3.0
+    add12 = Adder2(1, 2)
+    @test add12(3) ==  6
+    add22 = ConstructionBase.constructorof(typeof(add12))(2.0, 2)
+    @test add22(3) ==  7.0
+end
