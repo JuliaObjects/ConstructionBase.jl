@@ -148,9 +148,11 @@ end
 
     mult11 = multiplyer(1, 1)
     @test mult11(1) === 1
-    mult23 = ConstructionBase.constructorof(typeof(mult11))(2.0, 3.0)
+    mult23 = @inferred ConstructionBase.constructorof(typeof(mult11))(2.0, 3.0)
+    @inferred mult23(1)
     @test mult23(1) === 6.0
-    multbc = ConstructionBase.constructorof(typeof(mult23))("b", "c")
+    multbc = @inferred ConstructionBase.constructorof(typeof(mult23))("b", "c")
+    @inferred multbc("a")
     @test multbc("a") == "abc" 
 end
 
@@ -173,15 +175,17 @@ end
 @testset "Custom function object constructors" begin
     add1 = Adder(1)
     @test add1(1) === 2
-    add2 = ConstructionBase.constructorof(typeof(add1))(2.0)
-    @test add2(1) === 3.0
+    add2 = @inferred ConstructionBase.constructorof(typeof(add1))(2.0)
+    @inferred add2(1)
+    @test add2(1) == 3.0
     add12 = Adder2(1, 2)
-    @test add12(3) ==  6
-    add22 = ConstructionBase.constructorof(typeof(add12))(2.0, 2)
-    @test add22(3) ==  7.0
+    @test @inferred add12(3) ==  6
+    add22 = @inferred ConstructionBase.constructorof(typeof(add12))(2.0, 2)
+    @test @inferred add22(3) ==  7.0
 
     addtuple123 = AddTuple((1, 2, 3))
     @test addtuple123(1) === 7
-    addtuple234 = ConstructionBase.constructorof(typeof(addtuple123))((2.0, 3.0, 4.0))
+    addtuple234 = @inferred ConstructionBase.constructorof(typeof(addtuple123))((2.0, 3.0, 4.0))
+    @inferred addtuple234(1)
     @test addtuple234(1) === 10.0
 end
