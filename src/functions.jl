@@ -4,10 +4,10 @@
 
 struct FunctionConstructor{F} end
 
-@generated function (::FunctionConstructor{F})(args...) where F
+@generated function (fc::FunctionConstructor{F})(args...) where F
     T = getfield(parentmodule(F), nameof(F))
-    # Fallback for user-defined function objects
-    (length(args) == length(F.parameters) && F.parameters == F.types) || return :($T(args...))
+    # We assume all gensym names are anonymous functions
+    _isgensym(nameof(F)) || return :($T(args...))
     # Define `new` for rebuilt function type that matches args
     exp = Expr(:new, Expr(:curly, T, args...))
     for i in 1:length(args)
@@ -19,3 +19,5 @@ end
 function ConstructionBase.constructorof(f::Type{F}) where F <: Function
     FunctionConstructor{F}()
 end
+
+_isgensym(s::Symbol) = occursin("#", string(s))
