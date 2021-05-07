@@ -148,10 +148,10 @@ end
 
     mult11 = multiplyer(1, 1)
     @test mult11(1) === 1
-    mult23 = @inferred ConstructionBase.constructorof(typeof(mult11))(2.0, 3.0)
+    mult23 = @inferred constructorof(typeof(mult11))(2.0, 3.0)
     @inferred mult23(1)
     @test mult23(1) === 6.0
-    multbc = @inferred ConstructionBase.constructorof(typeof(mult23))("b", "c")
+    multbc = @inferred constructorof(typeof(mult23))("b", "c")
     @inferred multbc("a")
     @test multbc("a") == "abc" 
 end
@@ -172,7 +172,17 @@ struct AddTuple{T} <: Function
 end
 (o::AddTuple)(x) = sum(o.tuple) + x
 
-@testset "Custom function object constructors" begin
+# A function with an inner constructor with checks
+struct Rotation{M} <: Function
+    matrix::M
+    function Rotation(m)
+        @assert isapprox(det(m), 1)
+        @assert isapprox(m*m', I)
+        new{typeof(m)}(m)   
+    end
+end
+
+@testset "Custom function object constructors still work" begin
     add1 = Adder(1)
     @test add1(1) === 2
     add2 = @inferred ConstructionBase.constructorof(typeof(add1))(2.0)
@@ -188,4 +198,8 @@ end
     addtuple234 = @inferred ConstructionBase.constructorof(typeof(addtuple123))((2.0, 3.0, 4.0))
     @inferred addtuple234(1)
     @test addtuple234(1) === 10.0
+
+    @testset "inner constructor without type parameters is still called" begin
+        @test_throws AssertionError constructorof(Rotation{Matrix{Float64}})(zeros(3,3))
+    end
 end
