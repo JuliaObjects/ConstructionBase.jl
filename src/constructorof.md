@@ -62,4 +62,9 @@ julia> constructorof(typeof(t))(10, 2)
 T{Int64, Int64}(10, 2)
 ```
 
+`constructorof` is generated for all anonymous `Function`s lacking constructors,
+identified as having `gensym` `#` in their names. A custom struct `<: Function`
+with a `gensym` name may need to define `constructorof` manually.
+
+
 See also [Tips section in the manual](@ref type-tips)
