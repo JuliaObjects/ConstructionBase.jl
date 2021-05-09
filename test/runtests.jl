@@ -139,6 +139,18 @@ end
         @inferred constructorof(typeof(lr1))(getproperties(lr2)...)
     end
 
+    @testset "Dict" begin
+        d1 = Dict(:a => 1, :b => 2)
+        d2 = setproperties(d1, vals=d1.vals .* 2.0)
+        @test typeof(d2) <: Dict{Symbol,Float64}
+        @test d2[:a] == 2.0
+        @test d2[:b] == 4.0
+        d3 = setproperties(d1, keys=["x", "y"])
+        @test d3 isa Dict{String,Int}
+        @test d3["x"] == 1
+        @test d3["y"] == 2
+    end
+
 end
 
 @testset "Anonymous function constructors" begin
