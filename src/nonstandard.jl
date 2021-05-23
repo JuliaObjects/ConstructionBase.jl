@@ -3,7 +3,7 @@ using LinearAlgebra
 ### SubArray
 # `offset1` and `stride1` fields are calculated from parent indices.
 # Setting them has no effect.
-subarray_constructor(parent, indices, args...) = view(parent, indices...)
+subarray_constructor(parent, indices, args...) = SubArray(parent, indices)
 
 constructorof(::Type{<:SubArray}) = subarray_constructor
 
