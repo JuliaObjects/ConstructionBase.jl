@@ -24,6 +24,11 @@ end
     @test getproperties(o) === (a=1, b=2)
     @inferred getproperties(o)
     @test getproperties(Empty()) === NamedTuple()
+
+    t = (1,2,3.0)
+    @inferred getproperties(t)
+    @test t === getproperties(t)
+    @test () === getproperties(())
 end
 
 @testset "setproperties" begin
@@ -57,6 +62,13 @@ end
     @inferred setproperties(Empty(), NamedTuple())
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
+
+    @inferred setproperties((1,2,3), (1,2,3))
+    @test setproperties((1,2,3), (10.0,20,30)) === (10.0,20,30)
+    @test_throws MethodError setproperties((a=1,b=2), (10,20))
+    @test_throws ArgumentError setproperties((1,2), (a=10,b=20))
+    @test setproperties((),()) === ()
+
 end
 
 struct CustomSetproperties
@@ -153,7 +165,7 @@ end
     @test mult23(1) === 6.0
     multbc = @inferred constructorof(typeof(mult23))("b", "c")
     @inferred multbc("a")
-    @test multbc("a") == "abc" 
+    @test multbc("a") == "abc"
 end
 
 struct Adder{V} <: Function
@@ -165,7 +177,7 @@ struct Adder2{V} <: Function
     value::V
     int::Int
 end
-(o::Adder2)(x) = o.value + o.int + x 
+(o::Adder2)(x) = o.value + o.int + x
 
 struct AddTuple{T} <: Function
     tuple::Tuple{T,T,T}
@@ -178,7 +190,7 @@ struct Rotation{M} <: Function
     function Rotation(m)
         @assert isapprox(det(m), 1)
         @assert isapprox(m*m', I)
-        new{typeof(m)}(m)   
+        new{typeof(m)}(m)
     end
 end
 

@@ -41,6 +41,8 @@ struct NamedTupleConstructor{names} end
     end
 end
 
+getproperties(o::NamedTuple) = o
+getproperties(o::Tuple) = o
 @generated function getproperties(obj)
     fnames = fieldnames(obj)
     fvals = map(fnames) do fname
@@ -55,6 +57,16 @@ function setproperties(obj; kw...)
 end
 
 setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
+setproperties(obj::Tuple, patch::Tuple) = patch # TODO: should we check lengths?
+setproperties(obj::Tuple, patch::typeof(NamedTuple())) = obj
+function setproperties(obj::Tuple, patch::NamedTuple)
+    msg = """
+    Tuple has no named properties.
+    obj  ::Tuple      = $obj
+    patch::NamedTuple = $patch
+    """
+    throw(ArgumentError(msg))
+end
 
 _setproperties(obj, patch::typeof(NamedTuple())) = obj
 @generated function _setproperties(obj, patch::NamedTuple)
