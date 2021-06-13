@@ -238,10 +238,27 @@ end
 function funny_numbers(::Type{NamedTuple}, n)::NamedTuple
     t = funny_numbers(n)
     pairs = map(1:n) do i
-        Symbol("a_$i") => t[i]
+        Symbol("a$i") => t[i]
     end
     (;pairs...)
 end
+
+for n in [0,1,20,40]
+    Sn = Symbol("S$n")
+    types = [Symbol("A$i") for i in 1:n]
+    fields = [Symbol("a$i") for i in 1:n]
+    typed_fields = [:($ai::$Ai) for (ai,Ai) in zip(fields, types)]
+    @eval struct $(Sn){$(types...)}
+        $(typed_fields...)
+    end
+    @eval funny_numbers(::Type{$Sn}) = ($Sn)(funny_numbers($n)...)
+end
+
+@inferred setproperties(funny_numbers(S0), funny_numbers(NamedTuple, 0))
+@inferred setproperties(funny_numbers(S1), funny_numbers(NamedTuple, 1))
+@inferred setproperties(funny_numbers(S20), funny_numbers(NamedTuple, 18))
+@inferred setproperties(funny_numbers(S40), funny_numbers(NamedTuple, 38))
+
 
 @testset "inference" begin
     @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]

@@ -56,7 +56,7 @@ function setproperties(obj; kw...)
     setproperties(obj, (;kw...))
 end
 
-setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
+setproperties(obj, patch::NamedTuple) = setproperties_object(obj, patch)
 setproperties(obj::NamedTuple, patch::NamedTuple) = setproperties_namedtuple(obj, patch)
 const EmptyNamedTuple = typeof(NamedTuple())
 function setproperties_namedtuple(::EmptyNamedTuple, ::EmptyNamedTuple)
@@ -64,18 +64,24 @@ function setproperties_namedtuple(::EmptyNamedTuple, ::EmptyNamedTuple)
 end
 function setproperties_namedtuple(obj, patch)
     res = merge(obj, patch)
-    validate_setproperties_result(res, obj, patch)
+    validate_setproperties_result(res, obj, obj, patch)
     res
 end
-
 function validate_setproperties_result(
-    res::NamedTuple{fields}, obj::NamedTuple{fields}, patch) where {fields}
+    nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
     nothing
 end
-function validate_setproperties_result(res, obj, patch)
-    setproperties_unknown_field_error(obj, patch)
+function validate_setproperties_result(nt_new, nt_old, obj, patch)
+    O = typeof(obj)
+    P = typeof(patch)
+    msg = """
+    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
+    You may want to overload
+    ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
+    ConstructionBase.getproperties(obj::$O)
+    """
+    throw(ArgumentError(msg))
 end
-
 
 function setproperties_namedtuple(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
     patch
@@ -118,34 +124,14 @@ end
 function after(x::Tuple, ::Val{0})
     x
 end
-_setproperties(obj, patch::typeof(NamedTuple())) = obj
-@generated function _setproperties(obj, patch::NamedTuple)
-    if issubset(fieldnames(patch), fieldnames(obj))
-        args = map(fieldnames(obj)) do fn
-            if fn in fieldnames(patch)
-                :(patch.$fn)
-            else
-                :(obj.$fn)
-            end
-        end
-        return Expr(:block,
-            Expr(:meta, :inline),
-            Expr(:call,:(constructorof($obj)), args...)
-        )
-    else
-        :(setproperties_unknown_field_error(obj, patch))
-    end
+function setproperties_object(obj, patch::EmptyNamedTuple)
+    obj
 end
-
-@noinline function setproperties_unknown_field_error(obj, patch)
-    O = typeof(obj)
-    P = typeof(patch)
-    msg = """
-    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
-    You may want to overload
-    ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
-    """
-    throw(ArgumentError(msg))
+function setproperties_object(obj, patch)
+    nt = getproperties(obj)
+    nt_new = merge(nt, patch)
+    validate_setproperties_result(nt_new, nt, obj, patch)
+    constructorof(typeof(obj))(Tuple(nt_new)...)
 end
 
 include("nonstandard.jl")
