@@ -57,7 +57,6 @@ function setproperties(obj; kw...)
 end
 
 setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
-setproperties(obj::Tuple, patch::Tuple) = patch # TODO: should we check lengths?
 setproperties(obj::Tuple, patch::typeof(NamedTuple())) = obj
 function setproperties(obj::Tuple, patch::NamedTuple)
     msg = """
@@ -68,6 +67,31 @@ function setproperties(obj::Tuple, patch::NamedTuple)
     throw(ArgumentError(msg))
 end
 
+function setproperties(obj::Tuple, patch::Tuple)
+    setproperties_tuple(obj, patch)
+end
+function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{N,Any}) where {N}
+    patch
+end
+append(x,y) = (x..., y...)
+function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{K,Any}) where {N,K}
+    if K > N
+        msg = """
+        Cannot call `setproperties(obj::Tuple, patch::Tuple)` with `length(obj) < length(patch)`.
+        Got:
+        obj = $obj
+        patch = $patch
+        """
+        throw(ArgumentError(msg))
+    end
+    append(patch, after(obj, Val{K}()))
+end
+function after(xs::Tuple, ::Val{N}) where {N}
+    after(Base.tail(xs), Val{N-1}())
+end
+function after(x::Tuple, ::Val{0})
+    x
+end
 _setproperties(obj, patch::typeof(NamedTuple())) = obj
 @generated function _setproperties(obj, patch::NamedTuple)
     if issubset(fieldnames(patch), fieldnames(obj))
