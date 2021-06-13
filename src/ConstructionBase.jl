@@ -57,6 +57,9 @@ function setproperties(obj; kw...)
 end
 
 setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
+#setproperties(obj::NamedTuple, patch::NamedTuple) = setproperties_namedtuple(obj, patch)
+
+
 setproperties(obj::Tuple, patch::typeof(NamedTuple())) = obj
 @noinline function setproperties(obj::Tuple, patch::NamedTuple)
     msg = """

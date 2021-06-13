@@ -226,28 +226,51 @@ end
 end
 
 
-function funny_numbers(n)
+function funny_numbers(n)::Tuple
     types = [
         Int128, Int16, Int32, Int64, Int8,
         UInt128, UInt16, UInt32, UInt64, UInt8,
         Float16, Float32, Float64,
     ]
-    [T(true) for T in rand(types, n)]
+    Tuple([T(true) for T in rand(types, n)])
+end
+
+function funny_numbers(::Type{NamedTuple}, n)::NamedTuple
+    t = funny_numbers(n)
+    pairs = map(1:n) do i
+        Symbol("a_$i") => t[i]
+    end
+    (;pairs...)
 end
 
 @testset "inference" begin
     @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
-        t = Tuple(funny_numbers(n))
+        t = funny_numbers(n)
         @test length(t) == n
         @test getproperties(t) === t
         @inferred getproperties(t)
         for k in 0:n
-            t2 = Tuple(funny_numbers(k))
+            t2 = funny_numbers(k)
             @inferred setproperties(t, t2)
             @test setproperties(t, t2)[1:k] === t2
             @test setproperties(t, t2) isa Tuple
             @test length(setproperties(t, t2)) == n
             @test setproperties(t, t2)[k+1:n] === t[k+1:n]
+        end
+    end
+    @testset "NamedTuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
+        nt = funny_numbers(NamedTuple, n)
+        @test nt isa NamedTuple
+        @test length(nt) == n
+        @test getproperties(nt) === nt
+        @inferred getproperties(nt)
+        for k in 0:n
+            nt2 = funny_numbers(NamedTuple, k)
+            @inferred setproperties(nt, nt2)
+            @test Tuple(setproperties(nt, nt2))[1:k] === Tuple(nt2)
+            @test setproperties(nt, nt2) isa NamedTuple
+            @test length(setproperties(nt, nt2)) == n
+            @test Tuple(setproperties(nt, nt2))[k+1:n] === Tuple(nt)[k+1:n]
         end
     end
 end
