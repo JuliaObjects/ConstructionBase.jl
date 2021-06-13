@@ -63,14 +63,21 @@ end
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
 
+    @test setproperties((),()) === ()
+    @test setproperties((1,), ()) === (1,)
+    @test setproperties((1,), (10,)) === (10,)
+    @test_throws ArgumentError setproperties((1,), (10,20)) === (10,)
+
     @inferred setproperties((1,2,3), (1,2,3))
+    @test setproperties((1,2,3), ()) === (1,2,3)
+    @test setproperties((1,2,3), (10.0,)) === (10.0,2,3)
+    @test setproperties((1,2,3), (10.0,20)) === (10.0,20,3)
     @test setproperties((1,2,3), (10.0,20,30)) === (10.0,20,30)
+    @test_throws ArgumentError setproperties((1,2,3), (10.0,20,30,40))
+
     @test_throws MethodError setproperties((a=1,b=2), (10,20))
     @test_throws ArgumentError setproperties((), (10,))
-    @test_throws ArgumentError setproperties((1,2,3), (10,20,30,40))
     @test_throws ArgumentError setproperties((1,2), (a=10,b=20))
-    @test setproperties((),()) === ()
-
 end
 
 struct CustomSetproperties

@@ -77,8 +77,7 @@ append(x,y) = (x..., y...)
 function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{K,Any}) where {N,K}
     if K > N
         msg = """
-        Cannot call `setproperties(obj::Tuple, patch::Tuple)` with `length(obj) < length(patch)`.
-        Got:
+        Cannot call `setproperties(obj::Tuple, patch::Tuple)` with `length(obj) < length(patch)`. Got:
         obj = $obj
         patch = $patch
         """
