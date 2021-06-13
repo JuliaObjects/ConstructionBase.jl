@@ -258,6 +258,8 @@ end
             @test setproperties(t, t2)[k+1:n] === t[k+1:n]
         end
     end
+    @inferred getproperties(funny_numbers(100))
+    @inferred setproperties(funny_numbers(100), funny_numbers(90))
     @testset "NamedTuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
         nt = funny_numbers(NamedTuple, n)
         @test nt isa NamedTuple
@@ -273,4 +275,6 @@ end
             @test Tuple(setproperties(nt, nt2))[k+1:n] === Tuple(nt)[k+1:n]
         end
     end
+    @inferred getproperties(funny_numbers(NamedTuple, 100))
+    @inferred setproperties(funny_numbers(NamedTuple, 100), funny_numbers(NamedTuple, 90))
 end

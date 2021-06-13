@@ -57,10 +57,31 @@ function setproperties(obj; kw...)
 end
 
 setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
-#setproperties(obj::NamedTuple, patch::NamedTuple) = setproperties_namedtuple(obj, patch)
+setproperties(obj::NamedTuple, patch::NamedTuple) = setproperties_namedtuple(obj, patch)
+const EmptyNamedTuple = typeof(NamedTuple())
+function setproperties_namedtuple(::EmptyNamedTuple, ::EmptyNamedTuple)
+    NamedTuple()
+end
+function setproperties_namedtuple(obj, patch)
+    res = merge(obj, patch)
+    validate_setproperties_result(res, obj, patch)
+    res
+end
+
+function validate_setproperties_result(
+    res::NamedTuple{fields}, obj::NamedTuple{fields}, patch) where {fields}
+    nothing
+end
+function validate_setproperties_result(res, obj, patch)
+    setproperties_unknown_field_error(obj, patch)
+end
 
 
-setproperties(obj::Tuple, patch::typeof(NamedTuple())) = obj
+function setproperties_namedtuple(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
+    patch
+end
+
+setproperties(obj::Tuple, patch::EmptyNamedTuple) = obj
 @noinline function setproperties(obj::Tuple, patch::NamedTuple)
     msg = """
     Tuple has no named properties.
