@@ -44,11 +44,12 @@ end
     @test setproperties((1,), NamedTuple()) === (1,)
     @test setproperties((a=1,), ()) === (a=1,)
     @test setproperties((a=1,), NamedTuple()) === (a=1,)
+    @test setproperties(AB(1,2), ()) === AB(1,2)
+    @test setproperties(AB(1,2), NamedTuple()) === AB(1,2)
 
-    o = AB(1,2)
-    @test setproperties(o, (a=2, b=3))   === AB(2,3)
-    @test setproperties(o, (a=2, b=3.0)) === AB(2,3.0)
-    @test setproperties(o, a=2, b=3.0) === AB(2,3.0)
+    @test setproperties(AB(1,2), (a=2, b=3))   === AB(2,3)
+    @test setproperties(AB(1,2), (a=2, b=3.0)) === AB(2,3.0)
+    @test setproperties(AB(1,2), a=2, b=3.0) === AB(2,3.0)
 
     res = @test_throws ArgumentError setproperties(o, (a=2, this_field_does_not_exist=3.0))
     msg = sprint(showerror, res.value)
