@@ -41,6 +41,8 @@ struct NamedTupleConstructor{names} end
     end
 end
 
+getproperties(o::NamedTuple) = o
+getproperties(o::Tuple) = o
 @generated function getproperties(obj)
     fnames = fieldnames(obj)
     fvals = map(fnames) do fname
@@ -55,7 +57,43 @@ function setproperties(obj; kw...)
 end
 
 setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
+setproperties(obj::Tuple, patch::typeof(NamedTuple())) = obj
+@noinline function setproperties(obj::Tuple, patch::NamedTuple)
+    msg = """
+    Tuple has no named properties.
+    obj  ::Tuple      = $obj
+    patch::NamedTuple = $patch
+    """
+    throw(ArgumentError(msg))
+end
 
+function setproperties(obj::Tuple, patch::Tuple)
+    setproperties_tuple(obj, patch)
+end
+function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{N,Any}) where {N}
+    patch
+end
+append(x,y) = (x..., y...)
+@noinline function throw_setproperties_tuple_error(obj, patch)
+    msg = """
+    Cannot call `setproperties(obj::Tuple, patch::Tuple)` with `length(obj) < length(patch)`. Got:
+    obj = $obj
+    patch = $patch
+    """
+    throw(ArgumentError(msg))
+end
+function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{K,Any}) where {N,K}
+    if K > N
+        throw_setproperties_tuple_error(obj, patch)
+    end
+    append(patch, after(obj, Val{K}()))
+end
+function after(xs::Tuple, ::Val{N}) where {N}
+    after(Base.tail(xs), Val{N-1}())
+end
+function after(x::Tuple, ::Val{0})
+    x
+end
 _setproperties(obj, patch::typeof(NamedTuple())) = obj
 @generated function _setproperties(obj, patch::NamedTuple)
     if issubset(fieldnames(patch), fieldnames(obj))
@@ -75,7 +113,7 @@ _setproperties(obj, patch::typeof(NamedTuple())) = obj
     end
 end
 
-function setproperties_unknown_field_error(obj, patch)
+@noinline function setproperties_unknown_field_error(obj, patch)
     O = typeof(obj)
     P = typeof(patch)
     msg = """

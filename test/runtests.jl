@@ -24,6 +24,11 @@ end
     @test getproperties(o) === (a=1, b=2)
     @inferred getproperties(o)
     @test getproperties(Empty()) === NamedTuple()
+
+    t = (1,2,3.0)
+    @inferred getproperties(t)
+    @test t === getproperties(t)
+    @test () === getproperties(())
 end
 
 @testset "setproperties" begin
@@ -57,6 +62,22 @@ end
     @inferred setproperties(Empty(), NamedTuple())
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
+
+    @test setproperties((),()) === ()
+    @test setproperties((1,), ()) === (1,)
+    @test setproperties((1,), (10,)) === (10,)
+    @test_throws ArgumentError setproperties((1,), (10,20)) === (10,)
+
+    @inferred setproperties((1,2,3), (1,2,3))
+    @test setproperties((1,2,3), ()) === (1,2,3)
+    @test setproperties((1,2,3), (10.0,)) === (10.0,2,3)
+    @test setproperties((1,2,3), (10.0,20)) === (10.0,20,3)
+    @test setproperties((1,2,3), (10.0,20,30)) === (10.0,20,30)
+    @test_throws ArgumentError setproperties((1,2,3), (10.0,20,30,40))
+
+    @test_throws MethodError setproperties((a=1,b=2), (10,20))
+    @test_throws ArgumentError setproperties((), (10,))
+    @test_throws ArgumentError setproperties((1,2), (a=10,b=20))
 end
 
 struct CustomSetproperties
@@ -153,7 +174,7 @@ end
     @test mult23(1) === 6.0
     multbc = @inferred constructorof(typeof(mult23))("b", "c")
     @inferred multbc("a")
-    @test multbc("a") == "abc" 
+    @test multbc("a") == "abc"
 end
 
 struct Adder{V} <: Function
@@ -165,7 +186,7 @@ struct Adder2{V} <: Function
     value::V
     int::Int
 end
-(o::Adder2)(x) = o.value + o.int + x 
+(o::Adder2)(x) = o.value + o.int + x
 
 struct AddTuple{T} <: Function
     tuple::Tuple{T,T,T}
@@ -178,7 +199,7 @@ struct Rotation{M} <: Function
     function Rotation(m)
         @assert isapprox(det(m), 1)
         @assert isapprox(m*m', I)
-        new{typeof(m)}(m)   
+        new{typeof(m)}(m)
     end
 end
 
@@ -201,5 +222,32 @@ end
 
     @testset "inner constructor without type parameters is still called" begin
         @test_throws AssertionError constructorof(Rotation{Matrix{Float64}})(zeros(3,3))
+    end
+end
+
+
+function funny_numbers(n)
+    types = [
+        Int128, Int16, Int32, Int64, Int8,
+        UInt128, UInt16, UInt32, UInt64, UInt8,
+        Float16, Float32, Float64,
+    ]
+    [T(true) for T in rand(types, n)]
+end
+
+@testset "inference" begin
+    @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
+        t = Tuple(funny_numbers(n))
+        @test length(t) == n
+        @test getproperties(t) === t
+        @inferred getproperties(t)
+        for k in 0:n
+            t2 = Tuple(funny_numbers(k))
+            @inferred setproperties(t, t2)
+            @test setproperties(t, t2)[1:k] === t2
+            @test setproperties(t, t2) isa Tuple
+            @test length(setproperties(t, t2)) == n
+            @test setproperties(t, t2)[k+1:n] === t[k+1:n]
+        end
     end
 end
