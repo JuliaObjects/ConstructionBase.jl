@@ -51,13 +51,13 @@ end
     @test setproperties(AB(1,2), (a=2, b=3.0)) === AB(2,3.0)
     @test setproperties(AB(1,2), a=2, b=3.0) === AB(2,3.0)
 
-    res = @test_throws ArgumentError setproperties(o, (a=2, this_field_does_not_exist=3.0))
+    res = @test_throws ArgumentError setproperties(AB(1,2), (a=2, this_field_does_not_exist=3.0))
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
     @test occursin("overload", msg)
     @test occursin("ConstructionBase.setproperties", msg)
 
-    res = @test_throws ArgumentError setproperties(o, a=2, this_field_does_not_exist=3.0)
+    res = @test_throws ArgumentError setproperties(AB(1,2), a=2, this_field_does_not_exist=3.0)
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
     @test occursin("overload", msg)
@@ -72,7 +72,7 @@ end
     @test setproperties((a=1, b=2), (a=1.0,)) === (a=1.0, b=2)
     @test setproperties((a=1, b=2), a=1.0) === (a=1.0, b=2)
 
-    @inferred setproperties(o, a=2, b=3.0)
+    @inferred setproperties(AB(1,2), a=2, b=3.0)
     @inferred setproperties(Empty(), NamedTuple())
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
