@@ -52,15 +52,28 @@ getproperties(o::Tuple) = o
     :(NamedTuple{$fnames}($fvals))
 end
 
+################################################################################
+##### setproperties
+################################################################################
 function setproperties(obj; kw...)
     setproperties(obj, (;kw...))
 end
 
-setproperties(obj, patch::NamedTuple) = setproperties_object(obj, patch)
-setproperties(obj::NamedTuple, patch::NamedTuple) = setproperties_namedtuple(obj, patch)
-const EmptyNamedTuple = typeof(NamedTuple())
-function setproperties_namedtuple(::EmptyNamedTuple, ::EmptyNamedTuple)
-    NamedTuple()
+setproperties(obj             , patch::Tuple      ) = setproperties_object(obj     , patch )
+setproperties(obj             , patch::NamedTuple ) = setproperties_object(obj     , patch )
+setproperties(obj::NamedTuple , patch::Tuple      ) = setproperties_namedtuple(obj , patch )
+setproperties(obj::NamedTuple , patch::NamedTuple ) = setproperties_namedtuple(obj , patch )
+setproperties(obj::Tuple      , patch::Tuple      ) = setproperties_tuple(obj      , patch )
+setproperties(obj::Tuple      , patch::NamedTuple ) = setproperties_tuple(obj      , patch )
+
+setproperties_namedtuple(obj, patch::Tuple{}) = obj
+@noinline function setproperties_namedtuple(obj, patch::Tuple)
+    msg = """
+    setproperties(obj::NamedTuple, patch::Tuple) only allowed for empty Tuple. Got:
+    obj = $obj
+    patch = $patch
+    """
+    throw(ArgumentError(msg))
 end
 function setproperties_namedtuple(obj, patch)
     res = merge(obj, patch)
@@ -82,23 +95,18 @@ end
     """
     throw(ArgumentError(msg))
 end
-
 function setproperties_namedtuple(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
     patch
 end
 
-setproperties(obj::Tuple, patch::EmptyNamedTuple) = obj
-@noinline function setproperties(obj::Tuple, patch::NamedTuple)
+setproperties_tuple(obj::Tuple, patch::NamedTuple{()}) = obj
+@noinline function setproperties_tuple(obj::Tuple, patch::NamedTuple)
     msg = """
-    Tuple has no named properties.
+    setproperties(obj::Tuple, patch::NamedTuple) only allowed for empty NamedTuple. Got:
     obj  ::Tuple      = $obj
     patch::NamedTuple = $patch
     """
     throw(ArgumentError(msg))
-end
-
-function setproperties(obj::Tuple, patch::Tuple)
-    setproperties_tuple(obj, patch)
 end
 function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{N,Any}) where {N}
     patch
@@ -124,9 +132,16 @@ end
 function after(x::Tuple, ::Val{0})
     x
 end
-function setproperties_object(obj, patch::EmptyNamedTuple)
-    obj
+
+setproperties_object(obj, patch::Tuple{}) = obj
+@noinline function setproperties_object(obj, patch::Tuple)
+    msg = """
+    setproperties(obj, patch::Tuple) only allowed for empty Tuple. Got:
+    obj = $obj
+    patch = $patch
+    """
 end
+setproperties_object(obj, patch::NamedTuple{()}) = obj
 function setproperties_object(obj, patch)
     nt = getproperties(obj)
     nt_new = merge(nt, patch)

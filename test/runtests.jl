@@ -32,6 +32,19 @@ end
 end
 
 @testset "setproperties" begin
+
+    @test setproperties(NamedTuple(), NamedTuple()) === NamedTuple()
+    @test setproperties((), NamedTuple()) === ()
+    @test setproperties(NamedTuple(), ()) === NamedTuple()
+    @test setproperties((), ()) === ()
+    @test setproperties(1, ()) === 1
+    @test setproperties(1, NamedTuple()) === 1
+
+    @test setproperties((1,), ()) === (1,)
+    @test setproperties((1,), NamedTuple()) === (1,)
+    @test setproperties((a=1,), ()) === (a=1,)
+    @test setproperties((a=1,), NamedTuple()) === (a=1,)
+
     o = AB(1,2)
     @test setproperties(o, (a=2, b=3))   === AB(2,3)
     @test setproperties(o, (a=2, b=3.0)) === AB(2,3.0)
@@ -63,7 +76,6 @@ end
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
 
-    @test setproperties((),()) === ()
     @test setproperties((1,), ()) === (1,)
     @test setproperties((1,), (10,)) === (10,)
     @test_throws ArgumentError setproperties((1,), (10,20)) === (10,)
@@ -75,7 +87,7 @@ end
     @test setproperties((1,2,3), (10.0,20,30)) === (10.0,20,30)
     @test_throws ArgumentError setproperties((1,2,3), (10.0,20,30,40))
 
-    @test_throws MethodError setproperties((a=1,b=2), (10,20))
+    @test_throws ArgumentError setproperties((a=1,b=2), (10,20))
     @test_throws ArgumentError setproperties((), (10,))
     @test_throws ArgumentError setproperties((1,2), (a=10,b=20))
 end
