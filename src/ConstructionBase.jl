@@ -71,7 +71,7 @@ function validate_setproperties_result(
     nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
     nothing
 end
-function validate_setproperties_result(nt_new, nt_old, obj, patch)
+@noinline function validate_setproperties_result(nt_new, nt_old, obj, patch)
     O = typeof(obj)
     P = typeof(patch)
     msg = """
