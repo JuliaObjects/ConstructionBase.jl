@@ -250,5 +250,4 @@ end
             @test setproperties(t, t2)[k+1:n] === t[k+1:n]
         end
     end
-
 end
