@@ -32,18 +32,32 @@ end
 end
 
 @testset "setproperties" begin
-    o = AB(1,2)
-    @test setproperties(o, (a=2, b=3))   === AB(2,3)
-    @test setproperties(o, (a=2, b=3.0)) === AB(2,3.0)
-    @test setproperties(o, a=2, b=3.0) === AB(2,3.0)
 
-    res = @test_throws ArgumentError setproperties(o, (a=2, this_field_does_not_exist=3.0))
+    @test setproperties(NamedTuple(), NamedTuple()) === NamedTuple()
+    @test setproperties((), NamedTuple()) === ()
+    @test setproperties(NamedTuple(), ()) === NamedTuple()
+    @test setproperties((), ()) === ()
+    @test setproperties(1, ()) === 1
+    @test setproperties(1, NamedTuple()) === 1
+
+    @test setproperties((1,), ()) === (1,)
+    @test setproperties((1,), NamedTuple()) === (1,)
+    @test setproperties((a=1,), ()) === (a=1,)
+    @test setproperties((a=1,), NamedTuple()) === (a=1,)
+    @test setproperties(AB(1,2), ()) === AB(1,2)
+    @test setproperties(AB(1,2), NamedTuple()) === AB(1,2)
+
+    @test setproperties(AB(1,2), (a=2, b=3))   === AB(2,3)
+    @test setproperties(AB(1,2), (a=2, b=3.0)) === AB(2,3.0)
+    @test setproperties(AB(1,2), a=2, b=3.0) === AB(2,3.0)
+
+    res = @test_throws ArgumentError setproperties(AB(1,2), (a=2, this_field_does_not_exist=3.0))
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
     @test occursin("overload", msg)
     @test occursin("ConstructionBase.setproperties", msg)
 
-    res = @test_throws ArgumentError setproperties(o, a=2, this_field_does_not_exist=3.0)
+    res = @test_throws ArgumentError setproperties(AB(1,2), a=2, this_field_does_not_exist=3.0)
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
     @test occursin("overload", msg)
@@ -58,12 +72,11 @@ end
     @test setproperties((a=1, b=2), (a=1.0,)) === (a=1.0, b=2)
     @test setproperties((a=1, b=2), a=1.0) === (a=1.0, b=2)
 
-    @inferred setproperties(o, a=2, b=3.0)
+    @inferred setproperties(AB(1,2), a=2, b=3.0)
     @inferred setproperties(Empty(), NamedTuple())
     @inferred setproperties((a=1, b=2), a=1.0)
     @inferred setproperties((a=1, b=2), (a=1.0,))
 
-    @test setproperties((),()) === ()
     @test setproperties((1,), ()) === (1,)
     @test setproperties((1,), (10,)) === (10,)
     @test_throws ArgumentError setproperties((1,), (10,20)) === (10,)
@@ -75,7 +88,7 @@ end
     @test setproperties((1,2,3), (10.0,20,30)) === (10.0,20,30)
     @test_throws ArgumentError setproperties((1,2,3), (10.0,20,30,40))
 
-    @test_throws MethodError setproperties((a=1,b=2), (10,20))
+    @test_throws ArgumentError setproperties((a=1,b=2), (10,20))
     @test_throws ArgumentError setproperties((), (10,))
     @test_throws ArgumentError setproperties((1,2), (a=10,b=20))
 end
@@ -225,24 +238,42 @@ end
     end
 end
 
-
-function funny_numbers(n)
+function funny_numbers(n)::Tuple
     types = [
         Int128, Int16, Int32, Int64, Int8,
         UInt128, UInt16, UInt32, UInt64, UInt8,
         Float16, Float32, Float64,
     ]
-    [T(true) for T in rand(types, n)]
+    Tuple([T(true) for T in rand(types, n)])
+end
+
+function funny_numbers(::Type{NamedTuple}, n)::NamedTuple
+    t = funny_numbers(n)
+    pairs = map(1:n) do i
+        Symbol("a$i") => t[i]
+    end
+    (;pairs...)
+end
+
+for n in [0,1,20,40]
+    Sn = Symbol("S$n")
+    types = [Symbol("A$i") for i in 1:n]
+    fields = [Symbol("a$i") for i in 1:n]
+    typed_fields = [:($ai::$Ai) for (ai,Ai) in zip(fields, types)]
+    @eval struct $(Sn){$(types...)}
+        $(typed_fields...)
+    end
+    @eval funny_numbers(::Type{$Sn}) = ($Sn)(funny_numbers($n)...)
 end
 
 @testset "inference" begin
     @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
-        t = Tuple(funny_numbers(n))
+        t = funny_numbers(n)
         @test length(t) == n
         @test getproperties(t) === t
         @inferred getproperties(t)
         for k in 0:n
-            t2 = Tuple(funny_numbers(k))
+            t2 = funny_numbers(k)
             @inferred setproperties(t, t2)
             @test setproperties(t, t2)[1:k] === t2
             @test setproperties(t, t2) isa Tuple
@@ -250,4 +281,33 @@ end
             @test setproperties(t, t2)[k+1:n] === t[k+1:n]
         end
     end
+    @inferred getproperties(funny_numbers(100))
+    @inferred setproperties(funny_numbers(100), funny_numbers(90))
+    @testset "NamedTuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
+        nt = funny_numbers(NamedTuple, n)
+        @test nt isa NamedTuple
+        @test length(nt) == n
+        @test getproperties(nt) === nt
+        @inferred getproperties(nt)
+        for k in 0:n
+            nt2 = funny_numbers(NamedTuple, k)
+            @inferred setproperties(nt, nt2)
+            @test Tuple(setproperties(nt, nt2))[1:k] === Tuple(nt2)
+            @test setproperties(nt, nt2) isa NamedTuple
+            @test length(setproperties(nt, nt2)) == n
+            @test Tuple(setproperties(nt, nt2))[k+1:n] === Tuple(nt)[k+1:n]
+        end
+    end
+    @inferred getproperties(funny_numbers(NamedTuple, 100))
+    @inferred setproperties(funny_numbers(NamedTuple, 100), funny_numbers(NamedTuple, 90))
+
+
+    @inferred setproperties(funny_numbers(S0), funny_numbers(NamedTuple, 0))
+    @inferred setproperties(funny_numbers(S1), funny_numbers(NamedTuple, 1))
+    @inferred setproperties(funny_numbers(S20), funny_numbers(NamedTuple, 18))
+    @inferred setproperties(funny_numbers(S40), funny_numbers(NamedTuple, 38))
+    @inferred getproperties(funny_numbers(S0))
+    @inferred getproperties(funny_numbers(S1))
+    @inferred getproperties(funny_numbers(S20))
+    @inferred getproperties(funny_numbers(S40))
 end

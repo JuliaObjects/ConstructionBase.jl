@@ -52,23 +52,61 @@ getproperties(o::Tuple) = o
     :(NamedTuple{$fnames}($fvals))
 end
 
+################################################################################
+##### setproperties
+################################################################################
 function setproperties(obj; kw...)
     setproperties(obj, (;kw...))
 end
 
-setproperties(obj, patch::NamedTuple) = _setproperties(obj, patch)
-setproperties(obj::Tuple, patch::typeof(NamedTuple())) = obj
-@noinline function setproperties(obj::Tuple, patch::NamedTuple)
+setproperties(obj             , patch::Tuple      ) = setproperties_object(obj     , patch )
+setproperties(obj             , patch::NamedTuple ) = setproperties_object(obj     , patch )
+setproperties(obj::NamedTuple , patch::Tuple      ) = setproperties_namedtuple(obj , patch )
+setproperties(obj::NamedTuple , patch::NamedTuple ) = setproperties_namedtuple(obj , patch )
+setproperties(obj::Tuple      , patch::Tuple      ) = setproperties_tuple(obj      , patch )
+setproperties(obj::Tuple      , patch::NamedTuple ) = setproperties_tuple(obj      , patch )
+
+setproperties_namedtuple(obj, patch::Tuple{}) = obj
+@noinline function setproperties_namedtuple(obj, patch::Tuple)
     msg = """
-    Tuple has no named properties.
+    setproperties(obj::NamedTuple, patch::Tuple) only allowed for empty Tuple. Got:
+    obj = $obj
+    patch = $patch
+    """
+    throw(ArgumentError(msg))
+end
+function setproperties_namedtuple(obj, patch)
+    res = merge(obj, patch)
+    validate_setproperties_result(res, obj, obj, patch)
+    res
+end
+function validate_setproperties_result(
+    nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
+    nothing
+end
+@noinline function validate_setproperties_result(nt_new, nt_old, obj, patch)
+    O = typeof(obj)
+    P = typeof(patch)
+    msg = """
+    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
+    You may want to overload
+    ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
+    ConstructionBase.getproperties(obj::$O)
+    """
+    throw(ArgumentError(msg))
+end
+function setproperties_namedtuple(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
+    patch
+end
+
+setproperties_tuple(obj::Tuple, patch::NamedTuple{()}) = obj
+@noinline function setproperties_tuple(obj::Tuple, patch::NamedTuple)
+    msg = """
+    setproperties(obj::Tuple, patch::NamedTuple) only allowed for empty NamedTuple. Got:
     obj  ::Tuple      = $obj
     patch::NamedTuple = $patch
     """
     throw(ArgumentError(msg))
-end
-
-function setproperties(obj::Tuple, patch::Tuple)
-    setproperties_tuple(obj, patch)
 end
 function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{N,Any}) where {N}
     patch
@@ -94,34 +132,21 @@ end
 function after(x::Tuple, ::Val{0})
     x
 end
-_setproperties(obj, patch::typeof(NamedTuple())) = obj
-@generated function _setproperties(obj, patch::NamedTuple)
-    if issubset(fieldnames(patch), fieldnames(obj))
-        args = map(fieldnames(obj)) do fn
-            if fn in fieldnames(patch)
-                :(patch.$fn)
-            else
-                :(obj.$fn)
-            end
-        end
-        return Expr(:block,
-            Expr(:meta, :inline),
-            Expr(:call,:(constructorof($obj)), args...)
-        )
-    else
-        :(setproperties_unknown_field_error(obj, patch))
-    end
-end
 
-@noinline function setproperties_unknown_field_error(obj, patch)
-    O = typeof(obj)
-    P = typeof(patch)
+setproperties_object(obj, patch::Tuple{}) = obj
+@noinline function setproperties_object(obj, patch::Tuple)
     msg = """
-    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
-    You may want to overload
-    ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
+    setproperties(obj, patch::Tuple) only allowed for empty Tuple. Got:
+    obj = $obj
+    patch = $patch
     """
-    throw(ArgumentError(msg))
+end
+setproperties_object(obj, patch::NamedTuple{()}) = obj
+function setproperties_object(obj, patch)
+    nt = getproperties(obj)
+    nt_new = merge(nt, patch)
+    validate_setproperties_result(nt_new, nt, obj, patch)
+    constructorof(typeof(obj))(Tuple(nt_new)...)
 end
 
 include("nonstandard.jl")
