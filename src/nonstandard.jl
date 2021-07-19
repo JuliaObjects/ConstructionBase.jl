@@ -52,3 +52,13 @@ constructorof(::Type{<:LinearAlgebra.Tridiagonal}) = tridiagonal_constructor
 linrange_constructor(start, stop, len, lendiv) = LinRange(start, stop, len)
 
 constructorof(::Type{<:LinRange}) = linrange_constructor
+
+### Dict
+# Dict needs K, V type parameters
+constructorof(dict::Type{<:Dict}) = dict_constructor
+
+function dict_constructor(
+    slots, keys::Vector{K}, vals::Vector{V}, ndel, count, age, idxfloor, maxprobe
+) where {K,V}
+    Dict{K,V}(slots, keys, vals, ndel, count, age, idxfloor, maxprobe)
+end
