@@ -27,7 +27,8 @@ end
     @test fieldvalues((10,20,30)) === (10,20,30)
     @test fieldvalues((a=10,b=20f0,c=true)) === (10,20f0,true)
     @test fieldvalues(AB(1, 10)) === (1, 10)
-
+    adder(a) = x -> x + a
+    @test fieldvalues(adder(1)) === (1,)
 end
 
 

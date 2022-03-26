@@ -38,8 +38,5 @@ The semantics of `fieldvalues` should generally not be changed. It should equiva
 ```julia
 Tuple(getfield(obj,i) for i in 1:fieldcount(obj))
 ```
-even if that included private fields of `obj`.
+even if that includes private fields of `obj`.
 See also [`getproperties`](@ref), [`constructorof`](@ref)
-
-
-See also [Tips section in the manual](@ref type-tips)
