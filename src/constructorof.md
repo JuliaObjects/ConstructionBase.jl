@@ -32,17 +32,17 @@ julia> constructorof(S)(1,2,4)
 ERROR: AssertionError: a + b == checksum
 ```
 Instead `constructor` can be any object that satisfies the following properties:
-* It must be possible to reconstruct an object from the `NamedTuple` returned by
-`getproperties`:
+* It must be possible to reconstruct an object from the `Tuple` returned by
+[`fieldvalues`](@ref):
 ```julia
 ctor = constructorof(typeof(obj))
-@assert obj == ctor(getproperties(obj)...)
-@assert typeof(obj) == typeof(ctor(getproperties(obj)...))
+@assert obj == ctor(fieldvalues(obj)...)
+@assert typeof(obj) == typeof(ctor(fieldvalues(obj)...))
 ```
-* The other direction should hold for as many values of `args` as possible:
+* The other direction should hold for as many values of `args::Tuple` as possible:
 ```julia
 ctor = constructorof(T)
-getproperties(ctor(args...)) == args
+fieldvalues(ctor(args...)) == args
 ```
 For instance given a suitable parametric type it should be possible to change
 the type of its fields:

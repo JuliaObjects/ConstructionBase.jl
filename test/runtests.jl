@@ -19,6 +19,18 @@ end
     @test constructorof(Tuple{Nothing, Missing})(1.0, 2) === (1.0, 2)
 end
 
+@testset "fieldvalues" begin
+    @test fieldvalues(()) === ()
+    @test fieldvalues([]) === ()
+    @test fieldvalues(Empty()) === ()
+    @test fieldvalues(NamedTuple()) === ()
+    @test fieldvalues((10,20,30)) === (10,20,30)
+    @test fieldvalues((a=10,b=20f0,c=true)) === (10,20f0,true)
+    @test fieldvalues(AB(1, 10)) === (1, 10)
+
+end
+
+
 @testset "getproperties" begin
     o = AB(1, 2)
     @test getproperties(o) === (a=1, b=2)
@@ -310,4 +322,9 @@ end
     @inferred getproperties(funny_numbers(S1))
     @inferred getproperties(funny_numbers(S20))
     @inferred getproperties(funny_numbers(S40))
+
+    @inferred fieldvalues(funny_numbers(S0))
+    @inferred fieldvalues(funny_numbers(S1))
+    @inferred fieldvalues(funny_numbers(S20))
+    @inferred fieldvalues(funny_numbers(S40))
 end

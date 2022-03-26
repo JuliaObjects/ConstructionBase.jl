@@ -3,11 +3,14 @@ module ConstructionBase
 export getproperties
 export setproperties
 export constructorof
+export fieldvalues
+
 
 # Use markdown files as docstring:
 for (name, path) in [
     :ConstructionBase => joinpath(dirname(@__DIR__), "README.md"),
     :constructorof => joinpath(@__DIR__, "constructorof.md"),
+    :fieldvalues => joinpath(@__DIR__, "fieldvalues.md"),
     :getproperties => joinpath(@__DIR__, "getproperties.md"),
     :setproperties => joinpath(@__DIR__, "setproperties.md"),
 ]
@@ -50,6 +53,16 @@ getproperties(o::Tuple) = o
     end
     fvals = Expr(:tuple, fvals...)
     :(NamedTuple{$fnames}($fvals))
+end
+
+################################################################################
+#### fieldvalues
+################################################################################
+fieldvalues(x::Tuple) = x
+fieldvalues(x::NamedTuple) = Tuple(x)
+@generated function fieldvalues(x::T) where {T}
+    fields = (:(getfield(x, $i)) for i in 1:fieldcount(T))
+    Expr(:tuple, fields...)
 end
 
 ################################################################################
