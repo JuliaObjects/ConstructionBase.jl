@@ -6,19 +6,19 @@ Return a tuple containing field values of `obj`.
 ```jldoctest
 julia> using ConstructionBase
 
-julia> struct S
+julia> struct S{A,B}
            a::A
            b::B
        end
 
 julia> fieldvalues(S(1,2))
-(1,2)
+(1, 2)
 
 julia> fieldvalues((a=10,b=20))
-(10,20)
+(10, 20)
 
 julia> fieldvalues((4,5,6))
-(4,5,6)
+(4, 5, 6)
 ```
 
 # Specification
