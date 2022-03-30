@@ -27,10 +27,6 @@ Semantically `getfields` boils down to `getfield` and `fieldcount`:
 ```julia
 getfields(obj) == Tuple(getfield(obj,i) for i in 1:fieldcount(obj))
 ```
-The following relation to [`constructorof`](@ref) should be satisfied:
-```julia
-@assert obj == constructorof(obj)(getfields(obj)...)
-```
 
 # Implementation
 
