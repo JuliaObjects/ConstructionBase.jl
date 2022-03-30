@@ -19,16 +19,16 @@ end
     @test constructorof(Tuple{Nothing, Missing})(1.0, 2) === (1.0, 2)
 end
 
-@testset "fieldvalues" begin
-    @test fieldvalues(()) === ()
-    @test fieldvalues([]) === ()
-    @test fieldvalues(Empty()) === ()
-    @test fieldvalues(NamedTuple()) === ()
-    @test fieldvalues((10,20,30)) === (10,20,30)
-    @test fieldvalues((a=10,b=20f0,c=true)) === (10,20f0,true)
-    @test fieldvalues(AB(1, 10)) === (1, 10)
+@testset "getfields" begin
+    @test getfields(()) === ()
+    @test getfields([]) === ()
+    @test getfields(Empty()) === ()
+    @test getfields(NamedTuple()) === ()
+    @test getfields((10,20,30)) === (10,20,30)
+    @test getfields((a=10,b=20f0,c=true)) === (10,20f0,true)
+    @test getfields(AB(1, 10)) === (1, 10)
     adder(a) = x -> x + a
-    @test fieldvalues(adder(1)) === (1,)
+    @test getfields(adder(1)) === (1,)
 end
 
 
@@ -324,8 +324,8 @@ end
     @inferred getproperties(funny_numbers(S20))
     @inferred getproperties(funny_numbers(S40))
 
-    @inferred fieldvalues(funny_numbers(S0))
-    @inferred fieldvalues(funny_numbers(S1))
-    @inferred fieldvalues(funny_numbers(S20))
-    @inferred fieldvalues(funny_numbers(S40))
+    @inferred getfields(funny_numbers(S0))
+    @inferred getfields(funny_numbers(S1))
+    @inferred getfields(funny_numbers(S20))
+    @inferred getfields(funny_numbers(S40))
 end

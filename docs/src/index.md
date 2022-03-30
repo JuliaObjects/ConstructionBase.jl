@@ -8,7 +8,7 @@
 ```@docs
 ConstructionBase
 ConstructionBase.constructorof
-ConstructionBase.fieldvalues
+ConstructionBase.getfields
 ConstructionBase.getproperties
 ConstructionBase.setproperties
 ```
