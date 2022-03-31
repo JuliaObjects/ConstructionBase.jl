@@ -44,27 +44,22 @@ struct NamedTupleConstructor{names} end
     end
 end
 
-getproperties(o::NamedTuple) = o
-getproperties(o::Tuple) = o
-@generated function getproperties(obj)
-    fnames = fieldnames(obj)
-    fvals = map(fnames) do fname
-        Expr(:call, :getproperty, :obj, QuoteNode(fname))
-    end
-    fvals = Expr(:tuple, fvals...)
-    :(NamedTuple{$fnames}($fvals))
-end
 
 ################################################################################
 #### getfields
 ################################################################################
 getfields(x::Tuple) = x
-getfields(x::NamedTuple) = Tuple(x)
-@generated function getfields(x::T) where {T}
-    fields = (:(getfield(x, $i)) for i in 1:fieldcount(T))
-    Expr(:tuple, fields...)
+getfields(x::NamedTuple) = x
+@generated function getfields(obj)
+    fnames = fieldnames(obj)
+    fvals = map(fnames) do fname
+        Expr(:call, :getfield, :obj, QuoteNode(fname))
+    end
+    fvals = Expr(:tuple, fvals...)
+    :(NamedTuple{$fnames}($fvals))
 end
 
+getproperties(o) = getfields(o)
 ################################################################################
 ##### setproperties
 ################################################################################

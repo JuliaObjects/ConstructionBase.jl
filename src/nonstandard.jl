@@ -35,10 +35,9 @@ end
 function tridiagonal_constructor(dl::V, d::V, du::V, du2::V) where {V<:AbstractVector{T}} where T
     Tridiagonal{T,V}(dl, d, du, du2)
 end
-getfields(o::Tridiagonal) = Tuple(getproperties(o))
 
-# `du2` may be undefined, so we need a custom `getproperties` that checks `isdefined`
-function getproperties(o::Tridiagonal)
+# `du2` may be undefined, so we need a custom `getfields` that checks `isdefined`
+function getfields(o::Tridiagonal)
     if isdefined(o, :du2)
         (dl=o.dl, d=o.d, du=o.du, du2=o.du2) 
     else

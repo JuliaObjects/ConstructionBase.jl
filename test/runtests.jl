@@ -21,16 +21,27 @@ end
 
 @testset "getfields" begin
     @test getfields(()) === ()
-    @test getfields([]) === ()
-    @test getfields(Empty()) === ()
-    @test getfields(NamedTuple()) === ()
+    @test getfields([]) === NamedTuple()
+    @test getfields(Empty()) === NamedTuple()
+    @test getfields(NamedTuple()) === NamedTuple()
     @test getfields((10,20,30)) === (10,20,30)
-    @test getfields((a=10,b=20f0,c=true)) === (10,20f0,true)
-    @test getfields(AB(1, 10)) === (1, 10)
+    @test getfields((a=10,b=20f0,c=true)) === (a=10,b=20f0,c=true)
+    @test getfields(AB(1, 10)) === (a=1, b=10)
     adder(a) = x -> x + a
-    @test getfields(adder(1)) === (1,)
+    @test getfields(adder(1)) === (a=1,)
 end
 
+struct DontTouchProperties
+    a
+    b
+end
+Base.propertynames(::DontTouchProperties) = error()
+Base.getproperty(::DontTouchProperties, ::Symbol) = error()
+ConstructionBase.getproperties(::DontTouchProperties) = error()
+@testset "getfields does not depend on properties" begin
+    @test getfields(DontTouchProperties(1,2)) === (a=1, b=2)
+    @test constructorof(DontTouchProperties) === DontTouchProperties
+end
 
 @testset "getproperties" begin
     o = AB(1, 2)
