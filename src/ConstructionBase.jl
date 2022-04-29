@@ -24,41 +24,96 @@ for (name, path) in [
     end
 end
 
-@generated function constructorof(::Type{T}) where T
-    getfield(parentmodule(T), nameof(T))
+@static if isdefined(Base, Symbol("@assume_effects"))
+    using Base: @assume_effects
+else
+    macro assume_effects(_, ex)
+        Base.@pure ex
+    end
+end
+struct PropertyNames{syms} end
+
+struct PropertyIndices{inds} end
+
+const PropertyKeys{K} = Union{PropertyNames{K},PropertyIndices{K}}
+
+Base.eltype(@nospecialize p::PropertyKeys) = eltype(typeof(p))
+Base.eltype(@nospecialize T::Type{<:PropertyIndices}) = Int
+Base.eltype(@nospecialize T::Type{<:PropertyNames}) = Symbol
+
+PropertyNames(::Type{T}) where {T} = PropertyNames{fieldnames(T)}()
+PropertyNames(@nospecialize(T::Type{<:NamedTuple})) = PropertyNames{T.parameters[1]}()
+PropertyNames(@nospecialize(x)) = PropertyNames(typeof(x))
+
+PropertyIndices(::Type{T}) where {T} = PropertyIndices{ntuple(identity, Val(fieldcount(T)))}()
+PropertyIndices(@nospecialize T::Type{<:PropertyKeys}) = PropertyIndices{ntuple(identity, Val(length(T.parameters[1])))}()
+PropertyIndices(@nospecialize(x)) = PropertyIndices(typeof(x))
+
+Base.IteratorSize(@nospecialize T::Type{<:PropertyKeys}) = Base.HasLength()
+
+Base.values(@nospecialize(p::PropertyKeys)) = values(typeof(p))
+Base.values(@nospecialize(T::Type{<:PropertyKeys})) = T.parameters[1]
+
+Base.length(@nospecialize(p::PropertyKeys)) = length(values(p))
+_vlength(@nospecialize p) = Val(length(values(p)))
+
+@inline function _getfields(@nospecialize(obj), @nospecialize(fields), v::Val{N}) where {N}
+    ntuple(i -> getfield(obj, getfield(fields, i)), v)
+end
+Base.@propagate_inbounds Base.getindex(@nospecialize(p::PropertyKeys), @nospecialize(i::Integer)) = values(p)[i]
+Base.@propagate_inbounds function Base.getindex(@nospecialize(p1::PropertyIndices), @nospecialize(p2::PropertyIndices))
+    PropertyIndices{_getfields(values(p1), values(p2), _vlength(p2))}()
+end
+function Base.getindex(@nospecialize(p1::PropertyNames), @nospecialize(p2::PropertyIndices))
+    PropertyNames{_getfields(values(p1), values(p2), _vlength(p2))}()
 end
 
-constructorof(::Type{<:Tuple}) = tuple
-constructorof(::Type{<:NamedTuple{names}}) where names =
-    NamedTupleConstructor{names}()
+Base.isdone(@nospecialize(p::PropertyKeys), i::Int) = length(p) < i
+Base.iterate(::PropertyKeys{()}) = nothing
+Base.iterate(@nospecialize(p::PropertyKeys)) = @inbounds(p[1]), 2
+@inline function Base.iterate(@nospecialize(p::PropertyKeys), state::Int)
+    if Base.isdone(p, state)
+        return nothing
+    else
+        return @inbounds(p[state]), state + 1
+    end
+end
+
+constructorof(::Type{T}) where {T} = _default_constructorof(T)
+@assume_effects :total function _default_constructorof(T::DataType)
+    getfield(parentmodule(T), getfield(getfield(T, :name), :name))
+end
+
+constructorof(@nospecialize(T::Type{<:Tuple})) = tuple
+constructorof(@nospecialize(T::Type{<:NamedTuple})) = NamedTupleConstructor{fieldnames(T)}()
 
 struct NamedTupleConstructor{names} end
 
-@generated function (::NamedTupleConstructor{names})(args...) where names
-    quote
-        Base.@_inline_meta
-        $(NamedTuple{names, Tuple{args...}})(args)
-    end
-end
+(::NamedTupleConstructor{names})(args...) where {names} = NamedTuple{names}(args)
 
-getproperties(o::NamedTuple) = o
-getproperties(o::Tuple) = o
-@generated function getproperties(obj)
-    fnames = fieldnames(obj)
-    fvals = map(fnames) do fname
-        Expr(:call, :getproperty, :obj, QuoteNode(fname))
+# getproperties
+getproperties(@nospecialize(obj::NamedTuple)) = obj
+getproperties(@nospecialize(obj::Tuple)) = obj
+getproperties(@nospecialize(obj)) = getproperties(obj, PropertyNames(obj))
+
+function getproperties(@nospecialize(obj::Tuple), @nospecialize(p::PropertyIndices))
+    _getfields(obj, values(p), _vlength(p))
+end
+@inline function getproperties(@nospecialize(obj), @nospecialize(p::PropertyIndices))
+    getproperties(o, PropertyNames(o)[p])
+end
+@generated function getproperties(@nospecialize(obj), ::PropertyNames{nms}) where {nms}
+    t = Expr(:tuple)
+    for n in nms
+        push!(t.args, Expr(:call, :getproperty, :obj, QuoteNode(n)))
     end
-    fvals = Expr(:tuple, fvals...)
-    :(NamedTuple{$fnames}($fvals))
+    Expr(:block, Expr(:meta, :inline), :(NamedTuple{$(nms)}($(t))))
 end
 
 ################################################################################
 ##### setproperties
 ################################################################################
-function setproperties(obj; kw...)
-    setproperties(obj, (;kw...))
-end
-
+setproperties(obj; kw...) = setproperties(obj, (;kw...))
 setproperties(obj             , patch::Tuple      ) = setproperties_object(obj     , patch )
 setproperties(obj             , patch::NamedTuple ) = setproperties_object(obj     , patch )
 setproperties(obj::NamedTuple , patch::Tuple      ) = setproperties_namedtuple(obj , patch )
@@ -75,10 +130,8 @@ setproperties_namedtuple(obj, patch::Tuple{}) = obj
     """
     throw(ArgumentError(msg))
 end
-function setproperties_namedtuple(obj, patch)
-    res = merge(obj, patch)
-    validate_setproperties_result(res, obj, obj, patch)
-    res
+function setproperties_namedtuple(@nospecialize(obj), @nospecialize( patch))
+    _generated_setproperties(obj, patch, PropertyNames(obj), PropertyNames(patch))
 end
 function validate_setproperties_result(
     nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
@@ -86,16 +139,19 @@ function validate_setproperties_result(
 end
 @noinline function validate_setproperties_result(nt_new, nt_old, obj, patch)
     O = typeof(obj)
-    P = typeof(patch)
+    _setproperties_object(O, fieldnames(O), fieldnames(typeof(patch)))
+end
+@noinline function _setproperties_result_error(O::DataType, @nospecialize(objsyms), @nospecialize(patchsyms))
     msg = """
-    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
+    Failed to assign properties $(patchsyms) to object with fields $(objsyms).
     You may want to overload
     ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
     ConstructionBase.getproperties(obj::$O)
     """
     throw(ArgumentError(msg))
 end
-function setproperties_namedtuple(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
+
+function setproperties_namedtuple(::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
     patch
 end
 
@@ -108,9 +164,7 @@ setproperties_tuple(obj::Tuple, patch::NamedTuple{()}) = obj
     """
     throw(ArgumentError(msg))
 end
-function setproperties_tuple(obj::NTuple{N,Any}, patch::NTuple{N,Any}) where {N}
-    patch
-end
+setproperties_tuple(::NTuple{N,Any}, patch::NTuple{N,Any}) where {N} = patch
 append(x,y) = (x..., y...)
 @noinline function throw_setproperties_tuple_error(obj, patch)
     msg = """
@@ -134,7 +188,7 @@ function after(x::Tuple, ::Val{0})
 end
 
 setproperties_object(obj, patch::Tuple{}) = obj
-@noinline function setproperties_object(obj, patch::Tuple)
+@noinline function setproperties_object(obj, @nospecialize(patch::Tuple))
     msg = """
     setproperties(obj, patch::Tuple) only allowed for empty Tuple. Got:
     obj = $obj
@@ -142,11 +196,26 @@ setproperties_object(obj, patch::Tuple{}) = obj
     """
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
-function setproperties_object(obj, patch)
-    nt = getproperties(obj)
-    nt_new = merge(nt, patch)
-    validate_setproperties_result(nt_new, nt, obj, patch)
-    constructorof(typeof(obj))(Tuple(nt_new)...)
+@inline function setproperties_object(obj, patch)
+    _generated_setproperties(obj, patch, PropertyNames(obj), PropertyNames(patch))
+end
+@generated function _generated_setproperties(obj, patch, ::PropertyNames{objsyms}, ::PropertyNames{patchsyms}) where {objsyms,patchsyms}
+    out = Expr(:call, :(constructorof(typeof(obj))))
+    names = Symbol[objsyms...]
+    for ps in patchsyms
+        if !in(ps, objsyms)
+            push!(names, ps)
+        end
+    end
+    if all(in(objsyms), names)
+        for n in names
+            qn = QuoteNode(n)
+            push!(out.args, in(n, patchsyms) ? Expr(:call, :getfield, :patch, qn) : Expr(:call, :getproperty, :obj, qn))
+        end
+        return out
+    else
+        return :(_setproperties_result_error(typeof(obj), objsyms, patchsyms))
+    end
 end
 
 include("nonstandard.jl")
