@@ -19,6 +19,23 @@ end
     @test constructorof(Tuple{Nothing, Missing})(1.0, 2) === (1.0, 2)
 end
 
+@testset "PropertyNames" begin
+    abprops = ConstructionBase.PropertyNames{(:a, :b)}()
+    @test @inferred(abprops[1]) === :a
+    p1, s = iterate(abprops)
+    @test p1 == :a
+    p2, s = iterate(abprops, s)
+    @test p2 == :b
+    @test iterate(abprops, s) === nothing
+    # using PropertyNames helps with inferrence here
+    x = AB{Union{Int,Float64},Int}(1, 2);
+    @test @inferred(ConstructionBase.PropertyNames(x)) === abprops
+    @test @inferred(setproperties(x, (a = 2, b = 3))) == AB(2, 3)
+
+    x = (a = 1, b  = 2, c = 3, d = 4)
+    @test @inferred(getproperties(x, abprops)) === (a = 1, b = 2)
+end
+
 @testset "getproperties" begin
     o = AB(1, 2)
     @test getproperties(o) === (a=1, b=2)
@@ -311,3 +328,4 @@ end
     @inferred getproperties(funny_numbers(S20))
     @inferred getproperties(funny_numbers(S40))
 end
+

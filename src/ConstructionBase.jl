@@ -31,19 +31,33 @@ else
         Base.@pure ex
     end
 end
+
+"""
+    PropertyNames(T::Type) -> PropertyNames{fieldnames(T)}()
+
+Provides a compile time known representation of property names for `T`. This defaults to
+`fieldnames(T)` but may be changed for types whose `propertynames` are differ from their
+type's `fieldnames`. It may also provide a small performance benefit to manually
+specificying this type even if `propertynames(::T) == fieldnames(T)`.
+"""
 struct PropertyNames{syms} end
 
-struct PropertyIndices{inds} end
+"""
+    FieldIndices(T::Type) -> FieldIndices{(1, 2, 3, ...fieldcount(T))}()
 
-const PropertyKeys{K} = Union{PropertyNames{K},PropertyIndices{K}}
+Stores a tuple whose contents represent the fields of `T`. This corresponds to the raw
+definition of `T` and should not be defined for new types.
+"""
+struct FieldIndices{inds} end
+
+const PropertyKeys{K} = Union{PropertyNames{K},FieldIndices{K}}
 
 PropertyNames(::Type{T}) where {T} = PropertyNames{fieldnames(T)}()
 PropertyNames(@nospecialize(T::Type{<:NamedTuple})) = PropertyNames{T.parameters[1]}()
 PropertyNames(@nospecialize(x)) = PropertyNames(typeof(x))
 
-PropertyIndices(::Type{T}) where {T} = PropertyIndices{ntuple(identity, Val(fieldcount(T)))}()
-PropertyIndices(@nospecialize T::Type{<:PropertyKeys}) = PropertyIndices{ntuple(identity, Val(length(T.parameters[1])))}()
-PropertyIndices(@nospecialize(x)) = PropertyIndices(typeof(x))
+FieldIndices(@nospecialize T::Type) = FieldIndices{ntuple(identity, Val(fieldcount(T)))}()
+FieldIndices(@nospecialize(x)) = FieldIndices(typeof(x))
 
 Base.IteratorSize(@nospecialize T::Type{<:PropertyKeys}) = Base.HasLength()
 
@@ -57,14 +71,9 @@ _vlength(@nospecialize p) = Val(length(values(p)))
     ntuple(i -> getfield(obj, getfield(fields, i)), v)
 end
 Base.@propagate_inbounds Base.getindex(@nospecialize(p::PropertyKeys), @nospecialize(i::Integer)) = values(p)[i]
-Base.@propagate_inbounds function Base.getindex(@nospecialize(p1::PropertyIndices), @nospecialize(p2::PropertyIndices))
-    PropertyIndices{_getfields(values(p1), values(p2), _vlength(p2))}()
-end
-function Base.getindex(@nospecialize(p1::PropertyNames), @nospecialize(p2::PropertyIndices))
-    PropertyNames{_getfields(values(p1), values(p2), _vlength(p2))}()
-end
+
 @inline function Base.iterate(@nospecialize(p::PropertyKeys), state::Int=1)
-    if length(p) > state
+    if length(p) < state
         return nothing
     else
         return @inbounds(p[state]), state + 1
@@ -86,13 +95,10 @@ struct NamedTupleConstructor{names} end
 # getproperties
 getproperties(@nospecialize(obj::NamedTuple)) = obj
 getproperties(@nospecialize(obj::Tuple)) = obj
-getproperties(@nospecialize(obj)) = getproperties(obj, PropertyNames(obj))
+getproperties(obj) = getproperties(obj, PropertyNames(obj))
 
-function getproperties(@nospecialize(obj::Tuple), @nospecialize(p::PropertyIndices))
+function getproperties(@nospecialize(obj::Tuple), @nospecialize(p::FieldIndices))
     _getfields(obj, values(p), _vlength(p))
-end
-@inline function getproperties(@nospecialize(obj), @nospecialize(p::PropertyIndices))
-    getproperties(o, PropertyNames(o)[p])
 end
 @generated function getproperties(@nospecialize(obj), ::PropertyNames{nms}) where {nms}
     t = Expr(:tuple)
@@ -108,7 +114,7 @@ end
 setproperties(obj; kw...) = setproperties(obj, (;kw...))
 setproperties(obj, patch) = isempty(patch) ? obj : _setproperties(obj, patch)
 function _setproperties(@nospecialize(obj::Tuple), @nospecialize(patch::Tuple))
-    _generated_setproperties(obj, patch, PropertyIndices(obj), PropertyIndices(patch))
+    _generated_setproperties(obj, patch, FieldIndices(obj), FieldIndices(patch))
 end
 function _setproperties(obj, patch)
     _generated_setproperties(obj, patch, PropertyNames(obj), PropertyNames(patch))
