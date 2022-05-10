@@ -37,15 +37,17 @@ end
     x = (a = 1, b  = 2, c = 3, d = 4)
     @test @inferred(getproperties(x, abprops)) === (a = 1, b = 2)
 end
-@testset "Issue #55" begin
-    struct Issue55
-        x::Int
-        y::Union{Nothing, Int}
-    end 
-    function update(x)
-        setproperties(x, (; x = x.x + 1))
+@static if VERSION ≥ v"1.7"
+    @testset "Issue #55" begin
+        struct Issue55
+            x::Int
+            y::Union{Nothing, Int}
+        end 
+        function update(x)
+            setproperties(x, (; x = x.x + 1))
+        end
+        @inferred update(Issue55(1,2))
     end
-    @inferred update(Issue55(1,2))
 end
 @testset "getproperties" begin
     o = AB(1, 2)
