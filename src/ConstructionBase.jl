@@ -24,14 +24,6 @@ for (name, path) in [
     end
 end
 
-@static if isdefined(Base, Symbol("@assume_effects"))
-    using Base: @assume_effects
-else
-    macro assume_effects(_, ex)
-        Base.@pure ex
-    end
-end
-
 """
     PropertyNames(T::Type) -> PropertyNames{fieldnames(T)}()
 
@@ -80,13 +72,9 @@ Base.@propagate_inbounds Base.getindex(@nospecialize(p::PropertyKeys), @nospecia
     end
 end
 
-constructorof(::Type{T}) where {T} = _default_constructorof(T)
-@assume_effects :total function _default_constructorof(T::DataType)
-    getfield(parentmodule(T), getfield(getfield(T, :name), :name))
-end
-
-constructorof(@nospecialize(T::Type{<:Tuple})) = tuple
-constructorof(@nospecialize(T::Type{<:NamedTuple})) = NamedTupleConstructor{fieldnames(T)}()
+@generated constructorof(::Type{T}) where T = getfield(parentmodule(T), nameof(T))
+constructorof(::Type{<:Tuple}) = tuple
+constructorof(::Type{<:NamedTuple{names}}) where names = NamedTupleConstructor{names}()
 
 struct NamedTupleConstructor{names} end
 
