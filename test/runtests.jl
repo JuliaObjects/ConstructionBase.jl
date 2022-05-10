@@ -27,10 +27,12 @@ end
     p2, s = iterate(abprops, s)
     @test p2 == :b
     @test iterate(abprops, s) === nothing
-    # using PropertyNames helps with inferrence here
-    x = AB{Union{Int,Float64},Int}(1, 2);
-    @test @inferred(ConstructionBase.PropertyNames(x)) === abprops
-    @test @inferred(setproperties(x, (a = 2, b = 3))) == AB(2, 3)
+    @static if VERSION ≥ v"1.7"
+        # using PropertyNames helps with inferrence here
+        x = AB{Union{Int,Float64},Int}(1, 2);
+        @test @inferred(ConstructionBase.PropertyNames(x)) === abprops
+        @test @inferred(setproperties(x, (a = 2, b = 3))) == AB(2, 3)
+    end
 
     x = (a = 1, b  = 2, c = 3, d = 4)
     @test @inferred(getproperties(x, abprops)) === (a = 1, b = 2)
