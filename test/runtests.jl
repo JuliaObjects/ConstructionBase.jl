@@ -267,28 +267,39 @@ for n in [0,1,20,40]
 end
 
 @testset "inference" begin
+    reconstruct(obj, content) = constructorof(typeof(obj))(content...)
+
     @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
         t = funny_numbers(n)
         @test length(t) == n
         @test getproperties(t) === t
         @inferred getproperties(t)
+        T = typeof(t)
+        @inferred constructorof(T)
+        content = funny_numbers(n)
+        @inferred reconstruct(t, content)
         for k in 0:n
             t2 = funny_numbers(k)
-            @inferred setproperties(t, t2)
             @test setproperties(t, t2)[1:k] === t2
             @test setproperties(t, t2) isa Tuple
             @test length(setproperties(t, t2)) == n
             @test setproperties(t, t2)[k+1:n] === t[k+1:n]
+            @inferred setproperties(t, t2)
         end
     end
     @inferred getproperties(funny_numbers(100))
     @inferred setproperties(funny_numbers(100), funny_numbers(90))
+
     @testset "NamedTuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
         nt = funny_numbers(NamedTuple, n)
         @test nt isa NamedTuple
         @test length(nt) == n
         @test getproperties(nt) === nt
         @inferred getproperties(nt)
+
+        @inferred constructorof(typeof(nt))
+        content = funny_numbers(NamedTuple,n)
+        @inferred reconstruct(nt, content)
         for k in 0:n
             nt2 = funny_numbers(NamedTuple, k)
             @inferred setproperties(nt, nt2)
@@ -306,6 +317,15 @@ end
     @inferred setproperties(funny_numbers(S1), funny_numbers(NamedTuple, 1))
     @inferred setproperties(funny_numbers(S20), funny_numbers(NamedTuple, 18))
     @inferred setproperties(funny_numbers(S40), funny_numbers(NamedTuple, 38))
+    @inferred constructorof(S0)
+    @inferred constructorof(S1)
+    @inferred constructorof(S20)
+    @inferred constructorof(S40)
+    @inferred reconstruct(funny_numbers(S0), funny_numbers(0))
+    @inferred reconstruct(funny_numbers(S1), funny_numbers(1))
+    @inferred reconstruct(funny_numbers(S20), funny_numbers(20))
+    @inferred reconstruct(funny_numbers(S40), funny_numbers(40))
+
     @inferred getproperties(funny_numbers(S0))
     @inferred getproperties(funny_numbers(S1))
     @inferred getproperties(funny_numbers(S20))
