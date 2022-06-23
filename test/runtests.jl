@@ -361,8 +361,10 @@ end
         @inferred getproperties(nt)
 
         @inferred constructorof(typeof(nt))
-        content = funny_numbers(NamedTuple,n)
-        @inferred reconstruct(nt, content)
+        if VERSION >= "v1.3"
+            content = funny_numbers(NamedTuple,n)
+            @inferred reconstruct(nt, content)
+        end
         #no_allocs_test(nt, content)
         for k in 0:n
             nt2 = funny_numbers(NamedTuple, k)
@@ -376,7 +378,6 @@ end
     @inferred getproperties(funny_numbers(NamedTuple, 100))
     @inferred setproperties(funny_numbers(NamedTuple, 100), funny_numbers(NamedTuple, 90))
 
-
     @inferred setproperties(funny_numbers(S,0), funny_numbers(NamedTuple, 0))
     @inferred setproperties(funny_numbers(S,1), funny_numbers(NamedTuple, 1))
     @inferred setproperties(funny_numbers(S,20), funny_numbers(NamedTuple, 18))
@@ -385,10 +386,12 @@ end
     @inferred constructorof(S1)
     @inferred constructorof(S20)
     @inferred constructorof(S40)
-    @inferred reconstruct(funny_numbers(S,0) , funny_numbers(Tuple,0))
-    @inferred reconstruct(funny_numbers(S,1) , funny_numbers(Tuple,1))
-    @inferred reconstruct(funny_numbers(S,20), funny_numbers(Tuple,20))
-    @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
+    if VERSION >= v"1.3"
+        @inferred reconstruct(funny_numbers(S,0) , funny_numbers(Tuple,0))
+        @inferred reconstruct(funny_numbers(S,1) , funny_numbers(Tuple,1))
+        @inferred reconstruct(funny_numbers(S,20), funny_numbers(Tuple,20))
+        @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
+    end
 
     @inferred getproperties(funny_numbers(S,0))
     @inferred getproperties(funny_numbers(S,1))
