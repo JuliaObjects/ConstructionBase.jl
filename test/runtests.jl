@@ -361,7 +361,7 @@ end
         @inferred getproperties(nt)
 
         @inferred constructorof(typeof(nt))
-        if VERSION >= "v1.3"
+        if VERSION >= v"1.3"
             content = funny_numbers(NamedTuple,n)
             @inferred reconstruct(nt, content)
         end
