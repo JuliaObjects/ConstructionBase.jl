@@ -238,7 +238,7 @@ end
     end
 end
 
-function funny_numbers(n)::Tuple
+function funny_numbers(::Type{Tuple}, n)::Tuple
     types = [
         Int128, Int16, Int32, Int64, Int8,
         UInt128, UInt16, UInt32, UInt64, UInt8,
@@ -248,47 +248,124 @@ function funny_numbers(n)::Tuple
 end
 
 function funny_numbers(::Type{NamedTuple}, n)::NamedTuple
-    t = funny_numbers(n)
+    t = funny_numbers(Tuple,n)
     pairs = map(1:n) do i
         Symbol("a$i") => t[i]
     end
     (;pairs...)
 end
 
-for n in [0,1,20,40]
+abstract type S end
+Sn_from_n = Dict{Int,Type}()
+for n in [0,1,10,20,40]
     Sn = Symbol("S$n")
     types = [Symbol("A$i") for i in 1:n]
     fields = [Symbol("a$i") for i in 1:n]
     typed_fields = [:($ai::$Ai) for (ai,Ai) in zip(fields, types)]
-    @eval struct $(Sn){$(types...)}
+    @eval struct $(Sn){$(types...)} <: S
         $(typed_fields...)
     end
-    @eval funny_numbers(::Type{$Sn}) = ($Sn)(funny_numbers($n)...)
+    @eval Sn_from_n[$n] = $Sn
+end
+function funny_numbers(::Type{S}, n)::S
+    fields = funny_numbers(Tuple, n)
+    Sn_from_n[n](fields...)
+end
+
+reconstruct(obj, content) = constructorof(typeof(obj))(content...)
+
+function write_output_to_ref!(f, out_ref::Ref, arg_ref::Ref)
+    arg = arg_ref[]
+    out_ref[] = f(arg)
+    out_ref
+end
+function write_output_to_ref!(f, out_ref::Ref, arg_ref1::Ref, arg_ref2::Ref)
+    arg1 = arg_ref1[]
+    arg2 = arg_ref2[]
+    out_ref[] = f(arg1,arg2)
+    out_ref
+end
+function hot_loop_allocs(f::F, args...) where {F}
+    # we want to test that f(args...) does not allocate 
+    # when used in hot loops
+    # however a naive @allocated f(args...)
+    # will not be representative of what happens in an inner loop
+    # Instead it will sometimes box inputs/outputs
+    # and report too many allocations
+    # so we use Refs to minimize inputs and outputs
+    out_ref = Ref(f(args...))
+    arg_refs = map(Ref, args)
+    write_output_to_ref!(f, out_ref, arg_refs...)
+    out_ref = typeof(out_ref)() # erase out_ref so we can assert work was done later
+    # Avoid splatting args... which also results in undesired allocs
+    allocs = if length(arg_refs) == 1
+        r1, = arg_refs
+        @allocated write_output_to_ref!(f, out_ref, r1)
+    elseif length(arg_refs) == 2
+        r1,r2 = arg_refs
+        @allocated write_output_to_ref!(f, out_ref, r1, r2)
+    else
+        error("TODO too many args")
+    end
+    @assert out_ref[] == f(args...)
+    return allocs
+end
+
+@testset "no allocs $T" for T in [Tuple, NamedTuple, S]
+    @testset "n = $n" for n in [0,1,10,20]
+        obj = funny_numbers(T, n)
+        new_content = funny_numbers(Tuple, n)
+        @test 0 == hot_loop_allocs(constructorof, typeof(obj))
+        @test 0 == hot_loop_allocs(reconstruct, obj, new_content)
+        @test 0 == hot_loop_allocs(getproperties, obj)
+        patch_sizes = [0,1,n÷3,n÷2,n]
+        patch_sizes = min.(patch_sizes, n)
+        patch_sizes = unique(patch_sizes)
+        for k in patch_sizes
+            patch = if T === Tuple
+                funny_numbers(Tuple, k)
+            else
+                funny_numbers(NamedTuple, k)
+            end
+            @test 0 == hot_loop_allocs(setproperties, obj, patch)
+        end
+    end
 end
 
 @testset "inference" begin
     @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
-        t = funny_numbers(n)
+        t = funny_numbers(Tuple,n)
         @test length(t) == n
         @test getproperties(t) === t
         @inferred getproperties(t)
+        @inferred constructorof(typeof(t))
+        content = funny_numbers(Tuple,n)
+        @inferred reconstruct(t, content)
         for k in 0:n
-            t2 = funny_numbers(k)
-            @inferred setproperties(t, t2)
+            t2 = funny_numbers(Tuple,k)
             @test setproperties(t, t2)[1:k] === t2
             @test setproperties(t, t2) isa Tuple
             @test length(setproperties(t, t2)) == n
             @test setproperties(t, t2)[k+1:n] === t[k+1:n]
+            @inferred setproperties(t, t2)
         end
     end
-    @inferred getproperties(funny_numbers(100))
-    @inferred setproperties(funny_numbers(100), funny_numbers(90))
+    @inferred getproperties(funny_numbers(Tuple,100))
+    @inferred setproperties(funny_numbers(Tuple,100), funny_numbers(Tuple,90))
+
     @testset "NamedTuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
         nt = funny_numbers(NamedTuple, n)
         @test nt isa NamedTuple
         @test length(nt) == n
         @test getproperties(nt) === nt
         @inferred getproperties(nt)
+
+        @inferred constructorof(typeof(nt))
+        if VERSION >= v"1.3"
+            content = funny_numbers(NamedTuple,n)
+            @inferred reconstruct(nt, content)
+        end
+        #no_allocs_test(nt, content)
         for k in 0:n
             nt2 = funny_numbers(NamedTuple, k)
             @inferred setproperties(nt, nt2)
@@ -301,13 +378,23 @@ end
     @inferred getproperties(funny_numbers(NamedTuple, 100))
     @inferred setproperties(funny_numbers(NamedTuple, 100), funny_numbers(NamedTuple, 90))
 
+    @inferred setproperties(funny_numbers(S,0), funny_numbers(NamedTuple, 0))
+    @inferred setproperties(funny_numbers(S,1), funny_numbers(NamedTuple, 1))
+    @inferred setproperties(funny_numbers(S,20), funny_numbers(NamedTuple, 18))
+    @inferred setproperties(funny_numbers(S,40), funny_numbers(NamedTuple, 38))
+    @inferred constructorof(S0)
+    @inferred constructorof(S1)
+    @inferred constructorof(S20)
+    @inferred constructorof(S40)
+    if VERSION >= v"1.3"
+        @inferred reconstruct(funny_numbers(S,0) , funny_numbers(Tuple,0))
+        @inferred reconstruct(funny_numbers(S,1) , funny_numbers(Tuple,1))
+        @inferred reconstruct(funny_numbers(S,20), funny_numbers(Tuple,20))
+        @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
+    end
 
-    @inferred setproperties(funny_numbers(S0), funny_numbers(NamedTuple, 0))
-    @inferred setproperties(funny_numbers(S1), funny_numbers(NamedTuple, 1))
-    @inferred setproperties(funny_numbers(S20), funny_numbers(NamedTuple, 18))
-    @inferred setproperties(funny_numbers(S40), funny_numbers(NamedTuple, 38))
-    @inferred getproperties(funny_numbers(S0))
-    @inferred getproperties(funny_numbers(S1))
-    @inferred getproperties(funny_numbers(S20))
-    @inferred getproperties(funny_numbers(S40))
+    @inferred getproperties(funny_numbers(S,0))
+    @inferred getproperties(funny_numbers(S,1))
+    @inferred getproperties(funny_numbers(S,20))
+    @inferred getproperties(funny_numbers(S,40))
 end
