@@ -45,6 +45,7 @@ end
     @test setproperties((a=1,), ()) === (a=1,)
     @test setproperties((a=1,), NamedTuple()) === (a=1,)
     @test setproperties(AB(1,2), ()) === AB(1,2)
+    @test_throws ArgumentError setproperties(AB(1,2), (10,))
     @test setproperties(AB(1,2), NamedTuple()) === AB(1,2)
 
     @test setproperties(AB(1,2), (a=2, b=3))   === AB(2,3)

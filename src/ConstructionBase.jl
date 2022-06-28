@@ -34,11 +34,8 @@ constructorof(::Type{<:NamedTuple{names}}) where names =
 
 struct NamedTupleConstructor{names} end
 
-@generated function (::NamedTupleConstructor{names})(args...) where names
-    quote
-        Base.@_inline_meta
-        $(NamedTuple{names, Tuple{args...}})(args)
-    end
+@inline function (::NamedTupleConstructor{names})(args...) where names
+    NamedTuple{names}(args)
 end
 
 getproperties(o::NamedTuple) = o
@@ -157,6 +154,7 @@ setproperties_object(obj, patch::Tuple{}) = obj
     obj = $obj
     patch = $patch
     """
+    throw(ArgumentError(msg))
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 function setproperties_object(obj, patch)
