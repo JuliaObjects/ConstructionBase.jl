@@ -34,11 +34,8 @@ constructorof(::Type{<:NamedTuple{names}}) where names =
 
 struct NamedTupleConstructor{names} end
 
-@generated function (::NamedTupleConstructor{names})(args...) where names
-    quote
-        Base.@_inline_meta
-        $(NamedTuple{names, Tuple{args...}})(args)
-    end
+@inline function (::NamedTupleConstructor{names})(args...) where names
+    NamedTuple{names}(args)
 end
 
 getproperties(o::NamedTuple) = o
