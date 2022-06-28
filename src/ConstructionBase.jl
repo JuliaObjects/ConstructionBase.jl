@@ -43,13 +43,31 @@ end
 
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
-@generated function getproperties(obj)
-    fnames = fieldnames(obj)
-    fvals = map(fnames) do fname
-        Expr(:call, :getproperty, :obj, QuoteNode(fname))
+if VERSION >= v"1.7"
+    function getproperties(obj)
+        fnames = propertynames(obj)
+        NamedTuple{fnames}(getproperty.(Ref(obj), fnames))
     end
-    fvals = Expr(:tuple, fvals...)
-    :(NamedTuple{$fnames}($fvals))
+else
+    @generated function getproperties(obj)
+        if which(propertynames, Tuple{obj}).sig != Tuple{typeof(propertynames), Any}
+            # custom propertynames defined for this type
+            return quote
+                msg = """
+                Different fieldnames and propertynames are only supported on Julia v1.7+.
+                For older julia versions, consider overloading
+                `ConstructionBase.getproperties(obj::$(typeof(obj))`.
+                See also https://github.com/JuliaObjects/ConstructionBase.jl/pull/60.
+                """
+                error(msg)
+            end
+        end
+        fnames = fieldnames(obj)
+        fvals = map(fnames) do fname
+            :(obj.$fname)
+        end
+        :(NamedTuple{$fnames}(($(fvals...),)))
+    end
 end
 
 ################################################################################
@@ -86,9 +104,8 @@ function validate_setproperties_result(
 end
 @noinline function validate_setproperties_result(nt_new, nt_old, obj, patch)
     O = typeof(obj)
-    P = typeof(patch)
     msg = """
-    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
+    Failed to assign properties $(propertynames(patch)) to object with properties $(propertynames(obj)).
     You may want to overload
     ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
     ConstructionBase.getproperties(obj::$O)

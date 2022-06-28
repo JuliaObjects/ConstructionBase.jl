@@ -238,6 +238,30 @@ end
     end
 end
 
+# example of a struct with different fields and properties
+struct FieldProps{NT <: NamedTuple{(:a, :b)}}
+    components::NT
+end
+
+Base.propertynames(obj::FieldProps) = (:a, :b)
+Base.getproperty(obj::FieldProps, name::Symbol) = getproperty(getfield(obj, :components), name)
+ConstructionBase.constructorof(::Type{<:FieldProps}) = (a, b) -> FieldProps((a=a, b=b))
+
+@testset "use properties, not fields" begin
+    x = FieldProps((a=1, b=:b))
+    if VERSION >= v"1.7"
+        @test getproperties(x) == (a=1, b=:b)
+        @test setproperties(x, a="aaa") == FieldProps((a="aaa", b=:b))
+        VERSION >= v"1.8-dev" ?
+            (@test_throws "Failed to assign properties (:c,) to object with properties (:a, :b)" setproperties(x, c=0)) :
+            (@test_throws ArgumentError setproperties(x, c=0))
+    else
+        @test_throws ErrorException getproperties(x)
+        @test_throws ErrorException setproperties(x, a="aaa")
+        @test_throws ErrorException setproperties(x, c=0)
+    end
+end
+
 function funny_numbers(::Type{Tuple}, n)::Tuple
     types = [
         Int128, Int16, Int32, Int64, Int8,
