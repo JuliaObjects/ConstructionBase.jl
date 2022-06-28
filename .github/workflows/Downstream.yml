@@ -16,6 +16,7 @@ jobs:
           - {repo: JuliaObjects/Accessors.jl}
           - {repo: JuliaFolds/BangBang.jl}
           - {repo: jw3126/Setfield.jl}
+          - {repo: rafaqz/Flatten.jl}
     steps:
       - uses: actions/checkout@v2
       - uses: julia-actions/setup-julia@v1
