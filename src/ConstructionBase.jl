@@ -154,6 +154,7 @@ setproperties_object(obj, patch::Tuple{}) = obj
     obj = $obj
     patch = $patch
     """
+    throw(ArgumentError(msg))
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 function setproperties_object(obj, patch)
