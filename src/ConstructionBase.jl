@@ -37,13 +37,9 @@ constructorof(::Type{<:NamedTuple{names}}) where names =
 
 struct NamedTupleConstructor{names} end
 
-@generated function (::NamedTupleConstructor{names})(args...) where names
-    quote
-        Base.@_inline_meta
-        $(NamedTuple{names, Tuple{args...}})(args)
-    end
+@inline function (::NamedTupleConstructor{names})(args...) where names
+    NamedTuple{names}(args)
 end
-
 
 ################################################################################
 #### getfields
@@ -53,13 +49,40 @@ getfields(x::NamedTuple) = x
 @generated function getfields(obj)
     fnames = fieldnames(obj)
     fvals = map(fnames) do fname
-        Expr(:call, :getfield, :obj, QuoteNode(fname))
+         Expr(:call, :getfield, :obj, QuoteNode(fname))
     end
-    fvals = Expr(:tuple, fvals...)
-    :(NamedTuple{$fnames}($fvals))
+    :(NamedTuple{$fnames}(($(fvals...),)))
+end
+getproperties(o::NamedTuple) = o
+getproperties(o::Tuple) = o
+if VERSION >= v"1.7"
+    function getproperties(obj)
+        fnames = propertynames(obj)
+        NamedTuple{fnames}(getproperty.(Ref(obj), fnames))
+    end
+else
+    function getproperties(obj)
+        check_properties_are_fields(obj)
+        getfields(obj)
+    end
+    @generated function check_properties_are_fields(obj)
+        if which(propertynames, Tuple{obj}).sig != Tuple{typeof(propertynames), Any}
+            # custom propertynames defined for this type
+            return quote
+                msg = """
+                Different fieldnames and propertynames are only supported on Julia v1.7+.
+                For older julia versions, consider overloading
+                `ConstructionBase.getproperties(obj::$(typeof(obj))`.
+                See also https://github.com/JuliaObjects/ConstructionBase.jl/pull/60.
+                """
+                error(msg)
+            end
+        else
+            :()
+        end
+    end
 end
 
-getproperties(o) = getfields(o)
 ################################################################################
 ##### setproperties
 ################################################################################
@@ -94,9 +117,8 @@ function validate_setproperties_result(
 end
 @noinline function validate_setproperties_result(nt_new, nt_old, obj, patch)
     O = typeof(obj)
-    P = typeof(patch)
     msg = """
-    Failed to assign properties $(fieldnames(P)) to object with fields $(fieldnames(O)).
+    Failed to assign properties $(propertynames(patch)) to object with properties $(propertynames(obj)).
     You may want to overload
     ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
     ConstructionBase.getproperties(obj::$O)
@@ -148,6 +170,7 @@ setproperties_object(obj, patch::Tuple{}) = obj
     obj = $obj
     patch = $patch
     """
+    throw(ArgumentError(msg))
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 function setproperties_object(obj, patch)
