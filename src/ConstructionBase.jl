@@ -46,13 +46,6 @@ end
 ################################################################################
 getfields(x::Tuple) = x
 getfields(x::NamedTuple) = x
-@generated function getfields(obj)
-    fnames = fieldnames(obj)
-    fvals = map(fnames) do fname
-         Expr(:call, :getfield, :obj, QuoteNode(fname))
-    end
-    :(NamedTuple{$fnames}(($(fvals...),)))
-end
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 if VERSION >= v"1.7"
@@ -60,7 +53,18 @@ if VERSION >= v"1.7"
         fnames = propertynames(obj)
         NamedTuple{fnames}(getproperty.(Ref(obj), fnames))
     end
+    function getfields(obj::T) where {T}
+        fnames = fieldnames(T)
+        NamedTuple{fnames}(getfield.(Ref(obj), fnames))
+    end
 else
+    @generated function getfields(obj)
+        fnames = fieldnames(obj)
+        fvals = map(fnames) do fname
+             Expr(:call, :getfield, :obj, QuoteNode(fname))
+        end
+        :(NamedTuple{$fnames}(($(fvals...),)))
+    end
     function getproperties(obj)
         check_properties_are_fields(obj)
         getfields(obj)
