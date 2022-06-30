@@ -1,7 +1,8 @@
     getfields(obj) -> NamedTuple
     getfields(obj::Tuple) -> Tuple
 
-Return a `NamedTuple` containing fields of `obj`.
+Return a `NamedTuple` containing the fields of `obj`. On `Tuples` `getfields` is
+the identity function instead, since `Tuple` fields have no symbolic names.
 
 # Examples
 ```jldoctest
@@ -24,25 +25,27 @@ julia> getfields((4,5,6))
 
 # Specification
 
+`getfields` belongs to the [the raw level](@ref the-raw-level).
 Semantically `getfields` boils down to `getfield` and `fieldnames`:
 ```julia
-function getfields(obj)
-    pairs = (fnames => getfield(obj, fname) for fname in fieldnames(typeof(obj)))
-    (;pairs...)
+function getfields(obj::T) where {T}
+    fnames = fieldnames(T)
+    NamedTuple{fnames}(getfield.(Ref(obj), fnames))
 end
 ```
 However the actual implementation can be more optimized. For builtin types, there can also be deviations from this semantics:
 * `getfields(::Tuple)::Tuple` since `Tuples` don't have symbolic fieldnames
-* There are some types in `Base` that have `undef` fields. Since accessing these results
-in an error, `getfields` instead just omits these.
+* There are some types in `Base` that have `undef` fields. Since accessing these results in an error, `getfields` instead just omits these.
 
 # Implementation
 
-The semantics of `getfields` should not be changed for user defined types. It should equivalent to
+The semantics of `getfields` should not be changed for user defined types. It should 
+return the raw fields as a `NamedTuple` in the struct order. In other words it should be
+equivalent to
 ```julia
-function getfields(obj)
-    pairs = (fnames => getfield(obj, fname) for fname in fieldnames(typeof(obj)))
-    (;pairs...)
+function getfields(obj::T) where {T}
+    fnames = fieldnames(T)
+    NamedTuple{fnames}(getfield.(Ref(obj), fnames))
 end
 ```
 even if that includes private fields of `obj`.
