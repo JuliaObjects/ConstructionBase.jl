@@ -79,14 +79,10 @@ end
     res = @test_throws ArgumentError setproperties(AB(1,2), (a=2, this_field_does_not_exist=3.0))
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
-    @test occursin("overload", msg)
-    @test occursin("ConstructionBase.setproperties", msg)
 
     res = @test_throws ArgumentError setproperties(AB(1,2), a=2, this_field_does_not_exist=3.0)
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
-    @test occursin("overload", msg)
-    @test occursin("ConstructionBase.setproperties", msg)
 
     @test setproperties(42, NamedTuple()) === 42
     @test setproperties(42) === 42
@@ -268,22 +264,37 @@ struct FieldProps{NT <: NamedTuple{(:a, :b)}}
     components::NT
 end
 
-Base.propertynames(obj::FieldProps) = (:a, :b)
+Base.propertynames(::FieldProps) = (:a, :b)
 Base.getproperty(obj::FieldProps, name::Symbol) = getproperty(getfield(obj, :components), name)
-ConstructionBase.constructorof(::Type{<:FieldProps}) = (a, b) -> FieldProps((a=a, b=b))
 
 @testset "use properties, not fields" begin
     x = FieldProps((a=1, b=:b))
+    @test constructorof(typeof(x)) === FieldProps
+    @test getfields(x) === (components=(a=1, b=:b),)
+    res = @test_throws ErrorException setproperties(x, c=0)
+    msg = sprint(showerror, res.value)
+    @test occursin("overload", msg)
+    @test occursin("setproperties", msg)
+    @test occursin("FieldProps", msg)
+    @test_throws ErrorException setproperties(x, components=(a=1,b=:b))
+    msg = sprint(showerror, res.value)
+    @test occursin("overload", msg)
+    @test occursin("setproperties", msg)
+    @test occursin("FieldProps", msg)
+    @test_throws ErrorException setproperties(x, a="aaa")
+    msg = sprint(showerror, res.value)
+    @test occursin("overload", msg)
+    @test occursin("setproperties", msg)
+    @test occursin("FieldProps", msg)
+ # == FieldProps((a="aaa", b=:b)
     if VERSION >= v"1.7"
         @test getproperties(x) == (a=1, b=:b)
-        @test setproperties(x, a="aaa") == FieldProps((a="aaa", b=:b))
-        VERSION >= v"1.8-dev" ?
-            (@test_throws "Failed to assign properties (:c,) to object with properties (:a, :b)" setproperties(x, c=0)) :
-            (@test_throws ArgumentError setproperties(x, c=0))
     else
-        @test_throws ErrorException getproperties(x)
-        @test_throws ErrorException setproperties(x, a="aaa")
-        @test_throws ErrorException setproperties(x, c=0)
+        res = @test_throws ErrorException getproperties(x)
+        msg = sprint(showerror, res.value)
+        @test occursin("overload", msg)
+        @test occursin("getproperties", msg)
+        @test occursin("FieldProps", msg)
     end
 end
 

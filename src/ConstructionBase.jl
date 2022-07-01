@@ -48,6 +48,29 @@ getfields(x::Tuple) = x
 getfields(x::NamedTuple) = x
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
+
+@generated function check_properties_are_fields(::Type{T}) where {T}
+    if is_propertynames_overloaded(T)
+        return quote
+            msg = """
+            The function `Base.propertynames` was overloaded for type `$T`.
+            Please make sure the following methods are also overloaded for this type:
+            ```julia
+            ConstructionBase.setproperties
+            ConstructionBase.getproperties # optional in VERSION >= julia v1.7
+            ```
+            """
+            error(msg)
+        end
+    else
+        :()
+    end
+end
+
+function is_propertynames_overloaded(T::Type)::Bool
+    which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
+end
+
 if VERSION >= v"1.7"
     function getproperties(obj)
         fnames = propertynames(obj)
@@ -68,22 +91,6 @@ else
     function getproperties(obj)
         check_properties_are_fields(obj)
         getfields(obj)
-    end
-    @generated function check_properties_are_fields(obj)
-        if which(propertynames, Tuple{obj}).sig != Tuple{typeof(propertynames), Any}
-            # custom propertynames defined for this type
-            return quote
-                msg = """
-                Different fieldnames and propertynames are only supported on Julia v1.7+.
-                For older julia versions, consider overloading
-                `ConstructionBase.getproperties(obj::$(typeof(obj))`.
-                See also https://github.com/JuliaObjects/ConstructionBase.jl/pull/60.
-                """
-                error(msg)
-            end
-        else
-            :()
-        end
     end
 end
 
@@ -112,20 +119,17 @@ setproperties_namedtuple(obj, patch::Tuple{}) = obj
 end
 function setproperties_namedtuple(obj, patch)
     res = merge(obj, patch)
-    validate_setproperties_result(res, obj, obj, patch)
+    check_patch_properties_exist(res, obj, obj, patch)
     res
 end
-function validate_setproperties_result(
+function check_patch_properties_exist(
     nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
     nothing
 end
-@noinline function validate_setproperties_result(nt_new, nt_old, obj, patch)
+@noinline function check_patch_properties_exist(nt_new, nt_old, obj, patch)
     O = typeof(obj)
     msg = """
     Failed to assign properties $(propertynames(patch)) to object with properties $(propertynames(obj)).
-    You may want to overload
-    ConstructionBase.setproperties(obj::$O, patch::NamedTuple)
-    ConstructionBase.getproperties(obj::$O)
     """
     throw(ArgumentError(msg))
 end
@@ -178,10 +182,11 @@ setproperties_object(obj, patch::Tuple{}) = obj
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 function setproperties_object(obj, patch)
+    check_properties_are_fields(typeof(obj))
     nt = getproperties(obj)
     nt_new = merge(nt, patch)
-    validate_setproperties_result(nt_new, nt, obj, patch)
-    constructorof(typeof(obj))(Tuple(nt_new)...)
+    check_patch_properties_exist(nt_new, nt, obj, patch)
+    constructorof(typeof(obj))(nt_new...)
 end
 
 include("nonstandard.jl")
