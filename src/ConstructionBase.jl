@@ -64,7 +64,7 @@ getproperties(o::Tuple) = o
             error(msg)
         end
     else
-        :()
+        :(nothing)
     end
 end
 
@@ -183,10 +183,10 @@ setproperties_object(obj, patch::Tuple{}) = obj
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 function setproperties_object(obj, patch)
-    check_properties_are_fields(obj)
+    check_properties_are_fields(obj)::Nothing
     nt = getproperties(obj)
     nt_new = merge(nt, patch)
-    check_patch_properties_exist(nt_new, nt, obj, patch)
+    check_patch_properties_exist(nt_new, nt, obj, patch)::Nothing
     constructorof(typeof(obj))(nt_new...)
 end
 
