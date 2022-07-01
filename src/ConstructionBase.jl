@@ -184,19 +184,12 @@ end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 
 function setproperties_object(obj, patch)
-    check_properties_are_fields_except_old_julia(obj)::Nothing
+    check_properties_are_fields(obj)
     nt = getproperties(obj)
     nt_new = merge(nt, patch)
-    check_patch_properties_exist(nt_new, nt, obj, patch)::Nothing
+    check_patch_properties_exist(nt_new, nt, obj, patch)
     args = Tuple(nt_new) # old julia inference prefers if we wrap in Tuple
     constructorof(typeof(obj))(args...)
-end
-if VERSION < v"1.3"
-    # on old julia versions check_properties_are_fields
-    # trips inference of setproperties
-    check_properties_are_fields_except_old_julia(_) = nothing
-else
-    check_properties_are_fields_except_old_julia(obj) = check_properties_are_fields(obj)
 end
 
 include("nonstandard.jl")
