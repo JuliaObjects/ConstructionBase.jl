@@ -49,9 +49,10 @@ getfields(x::NamedTuple) = x
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
-@generated function check_properties_are_fields(::Type{T}) where {T}
-    if is_propertynames_overloaded(T)
+@generated function check_properties_are_fields(obj)
+    if is_propertynames_overloaded(obj)
         return quote
+            T = typeof(obj)
             msg = """
             The function `Base.propertynames` was overloaded for type `$T`.
             Please make sure the following methods are also overloaded for this type:
@@ -182,7 +183,7 @@ setproperties_object(obj, patch::Tuple{}) = obj
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 function setproperties_object(obj, patch)
-    check_properties_are_fields(typeof(obj))
+    check_properties_are_fields(obj)
     nt = getproperties(obj)
     nt_new = merge(nt, patch)
     check_patch_properties_exist(nt_new, nt, obj, patch)
