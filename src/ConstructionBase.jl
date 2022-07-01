@@ -184,7 +184,7 @@ end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 
 function setproperties_object(obj, patch)
-    check_properties_are_fields_except_old_julia(obj)::Nothing
+    #check_properties_are_fields_except_old_julia(obj)::Nothing
     nt = getproperties(obj)
     nt_new = merge(nt, patch)
     check_patch_properties_exist(nt_new, nt, obj, patch)::Nothing
