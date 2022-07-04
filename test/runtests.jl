@@ -19,6 +19,30 @@ end
     @test constructorof(Tuple{Nothing, Missing})(1.0, 2) === (1.0, 2)
 end
 
+@testset "getfields" begin
+    @test getfields(()) === ()
+    @test getfields([]) === NamedTuple()
+    @test getfields(Empty()) === NamedTuple()
+    @test getfields(NamedTuple()) === NamedTuple()
+    @test getfields((10,20,30)) === (10,20,30)
+    @test getfields((a=10,b=20f0,c=true)) === (a=10,b=20f0,c=true)
+    @test getfields(AB(1, 10)) === (a=1, b=10)
+    adder(a) = x -> x + a
+    @test getfields(adder(1)) === (a=1,)
+end
+
+struct DontTouchProperties
+    a
+    b
+end
+Base.propertynames(::DontTouchProperties) = error()
+Base.getproperty(::DontTouchProperties, ::Symbol) = error()
+ConstructionBase.getproperties(::DontTouchProperties) = error()
+@testset "getfields does not depend on properties" begin
+    @test getfields(DontTouchProperties(1,2)) === (a=1, b=2)
+    @test constructorof(DontTouchProperties) === DontTouchProperties
+end
+
 @testset "getproperties" begin
     o = AB(1, 2)
     @test getproperties(o) === (a=1, b=2)
@@ -55,14 +79,10 @@ end
     res = @test_throws ArgumentError setproperties(AB(1,2), (a=2, this_field_does_not_exist=3.0))
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
-    @test occursin("overload", msg)
-    @test occursin("ConstructionBase.setproperties", msg)
 
     res = @test_throws ArgumentError setproperties(AB(1,2), a=2, this_field_does_not_exist=3.0)
     msg = sprint(showerror, res.value)
     @test occursin("this_field_does_not_exist", msg)
-    @test occursin("overload", msg)
-    @test occursin("ConstructionBase.setproperties", msg)
 
     @test setproperties(42, NamedTuple()) === 42
     @test setproperties(42) === 42
@@ -121,29 +141,29 @@ end
 
     @testset "SubArray" begin
         subarray = view(A1, 1:2, 3:4)
-        @test constructorof(typeof(subarray))(getproperties(subarray)...) === subarray
+        @test constructorof(typeof(subarray))(getfields(subarray)...) === subarray
         @test all(constructorof(typeof(subarray))(A2, (Base.OneTo(2), 3:4), 0, 0) .== Float32[1 1; 1 1])
-        @inferred constructorof(typeof(subarray))(getproperties(subarray)...)
+        @inferred constructorof(typeof(subarray))(getfields(subarray)...)
         @inferred constructorof(typeof(subarray))(A2, (Base.OneTo(2), 3:4), 0, 0)
     end
 
     @testset "ReinterpretArray" begin
         ra1 = reinterpret(Float16, A1)
         @test constructorof(typeof(ra1))(A1) === ra1
-        @test constructorof(typeof(ra1))(getproperties(ra1)...) === ra1
+        @test constructorof(typeof(ra1))(getfields(ra1)...) === ra1
         ra2 = constructorof(typeof(ra1))(A2)
         @test size(ra2) == (10, 6)
         @test eltype(ra2) == Float16
-        @inferred constructorof(typeof(ra1))(getproperties(ra1)...)
+        @inferred constructorof(typeof(ra1))(getfields(ra1)...)
         @inferred constructorof(typeof(ra1))(A2)
     end
 
     @testset "PermutedDimsArray" begin
         pda1 = PermutedDimsArray(A1, (2, 1))
         @test constructorof(typeof(pda1))(A1) === pda1
-        @test constructorof(typeof(pda1))(getproperties(pda1)...) === pda1
+        @test constructorof(typeof(pda1))(getfields(pda1)...) === pda1
         @test eltype(constructorof(typeof(pda1))(A2)) == Float32
-        @inferred constructorof(typeof(pda1))(getproperties(pda1)...)
+        @inferred constructorof(typeof(pda1))(getfields(pda1)...)
         @inferred constructorof(typeof(pda1))(A2)
     end
 
@@ -154,24 +174,24 @@ end
         tda = Tridiagonal(dl, d, du)
         @test isdefined(tda, :du2) == false
         @test constructorof(typeof(tda))(dl, d, du) === tda
-        @test constructorof(typeof(tda))(getproperties(tda)...) === tda
+        @test constructorof(typeof(tda))(getfields(tda)...) === tda
         # lu factorization defines du2
         tda_lu = lu!(tda).factors
         @test isdefined(tda_lu, :du2) == true
-        @test constructorof(typeof(tda_lu))(getproperties(tda_lu)...) === tda_lu
-        @test constructorof(typeof(tda_lu))(getproperties(tda)...) !== tda_lu
-        @test constructorof(typeof(tda_lu))(getproperties(tda)...) === tda
-        @inferred constructorof(typeof(tda))(getproperties(tda)...)
-        @inferred constructorof(typeof(tda))(getproperties(tda_lu)...)
+        @test constructorof(typeof(tda_lu))(getfields(tda_lu)...) === tda_lu
+        @test constructorof(typeof(tda_lu))(getfields(tda)...) !== tda_lu
+        @test constructorof(typeof(tda_lu))(getfields(tda)...) === tda
+        @inferred constructorof(typeof(tda))(getfields(tda)...)
+        @inferred constructorof(typeof(tda))(getfields(tda_lu)...)
     end
 
     @testset "LinRange" begin
         lr1 = LinRange(1, 7, 10)
         lr2 = LinRange(1.0f0, 7.0f0, 10)
         @test constructorof(typeof(lr1))(1, 7, 10, nothing) === lr1
-        @test constructorof(typeof(lr1))(getproperties(lr2)...) === lr2
-        @inferred constructorof(typeof(lr1))(getproperties(lr1)...)
-        @inferred constructorof(typeof(lr1))(getproperties(lr2)...)
+        @test constructorof(typeof(lr1))(getfields(lr2)...) === lr2
+        @inferred constructorof(typeof(lr1))(getfields(lr1)...)
+        @inferred constructorof(typeof(lr1))(getfields(lr2)...)
     end
 
 end
@@ -244,22 +264,37 @@ struct FieldProps{NT <: NamedTuple{(:a, :b)}}
     components::NT
 end
 
-Base.propertynames(obj::FieldProps) = (:a, :b)
+Base.propertynames(::FieldProps) = (:a, :b)
 Base.getproperty(obj::FieldProps, name::Symbol) = getproperty(getfield(obj, :components), name)
-ConstructionBase.constructorof(::Type{<:FieldProps}) = (a, b) -> FieldProps((a=a, b=b))
 
 @testset "use properties, not fields" begin
     x = FieldProps((a=1, b=:b))
+    @test constructorof(typeof(x)) === FieldProps
+    @test getfields(x) === (components=(a=1, b=:b),)
+    res = @test_throws ErrorException setproperties(x, c=0)
+    msg = sprint(showerror, res.value)
+    @test occursin("overload", msg)
+    @test occursin("setproperties", msg)
+    @test occursin("FieldProps", msg)
+    @test_throws ErrorException setproperties(x, components=(a=1,b=:b))
+    msg = sprint(showerror, res.value)
+    @test occursin("overload", msg)
+    @test occursin("setproperties", msg)
+    @test occursin("FieldProps", msg)
+    @test_throws ErrorException setproperties(x, a="aaa")
+    msg = sprint(showerror, res.value)
+    @test occursin("overload", msg)
+    @test occursin("setproperties", msg)
+    @test occursin("FieldProps", msg)
+ # == FieldProps((a="aaa", b=:b)
     if VERSION >= v"1.7"
         @test getproperties(x) == (a=1, b=:b)
-        @test setproperties(x, a="aaa") == FieldProps((a="aaa", b=:b))
-        VERSION >= v"1.8-dev" ?
-            (@test_throws "Failed to assign properties (:c,) to object with properties (:a, :b)" setproperties(x, c=0)) :
-            (@test_throws ArgumentError setproperties(x, c=0))
     else
-        @test_throws ErrorException getproperties(x)
-        @test_throws ErrorException setproperties(x, a="aaa")
-        @test_throws ErrorException setproperties(x, c=0)
+        res = @test_throws ErrorException getproperties(x)
+        msg = sprint(showerror, res.value)
+        @test occursin("overload", msg)
+        @test occursin("getproperties", msg)
+        @test occursin("FieldProps", msg)
     end
 end
 
@@ -343,6 +378,7 @@ end
         @test 0 == hot_loop_allocs(constructorof, typeof(obj))
         @test 0 == hot_loop_allocs(reconstruct, obj, new_content)
         @test 0 == hot_loop_allocs(getproperties, obj)
+        @test 0 == hot_loop_allocs(getfields, obj)
         patch_sizes = [0,1,n÷3,n÷2,n]
         patch_sizes = min.(patch_sizes, n)
         patch_sizes = unique(patch_sizes)
@@ -363,6 +399,8 @@ end
         @test length(t) == n
         @test getproperties(t) === t
         @inferred getproperties(t)
+        @test getfields(t) === t
+        @inferred getfields(t)
         @inferred constructorof(typeof(t))
         content = funny_numbers(Tuple,n)
         @inferred reconstruct(t, content)
@@ -384,6 +422,8 @@ end
         @test length(nt) == n
         @test getproperties(nt) === nt
         @inferred getproperties(nt)
+        @test getfields(nt) === nt
+        @inferred getfields(nt)
 
         @inferred constructorof(typeof(nt))
         if VERSION >= v"1.3"
@@ -418,6 +458,10 @@ end
         @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
     end
 
+    @inferred getfields(funny_numbers(S,0))
+    @inferred getfields(funny_numbers(S,1))
+    @inferred getfields(funny_numbers(S,20))
+    @inferred getfields(funny_numbers(S,40))
     @inferred getproperties(funny_numbers(S,0))
     @inferred getproperties(funny_numbers(S,1))
     @inferred getproperties(funny_numbers(S,20))
