@@ -5,7 +5,6 @@ export setproperties
 export constructorof
 export getfields
 
-
 # Use markdown files as docstring:
 for (name, path) in [
     :ConstructionBase => joinpath(dirname(@__DIR__), "README.md"),
@@ -49,6 +48,10 @@ getfields(x::NamedTuple) = x
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
+function is_propertynames_overloaded(T::Type)::Bool
+    which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
+end
+
 @generated function check_properties_are_fields(obj)
     if is_propertynames_overloaded(obj)
         return quote
@@ -66,10 +69,6 @@ getproperties(o::Tuple) = o
     else
         :(nothing)
     end
-end
-
-function is_propertynames_overloaded(T::Type)::Bool
-    which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
 end
 
 if VERSION >= v"1.7"
