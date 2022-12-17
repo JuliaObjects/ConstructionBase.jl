@@ -12,4 +12,19 @@ ConstructionBase.constructorof(sa::Type{<:SizedArray{S}}) where {S} = SizedArray
 ConstructionBase.constructorof(::Type{<:SVector}) = SVector
 ConstructionBase.constructorof(::Type{<:MVector}) = MVector
 
+# set properties by name: x, y, z, w
+@generated function ConstructionBase.setproperties(obj::Union{SVector{N}, MVector{N}}, patch::NamedTuple{KS}) where {N, KS}
+    if KS == (:data,)
+        :( constructorof(typeof(obj))(only(patch)) )
+    else
+        propnames = (:x, :y, :z, :w)[1:N]
+        KS ⊆ propnames || error("type $obj does not have properties $(join(KS, ", "))")
+        field_exprs = map(enumerate(propnames)) do (i, p)
+            from = p ∈ KS ? :patch : :obj
+            :( $from.$p )
+        end
+        :( constructorof(typeof(obj))($(field_exprs...)) )
+    end
+end
+
 end
