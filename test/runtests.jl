@@ -502,8 +502,8 @@ if isdefined(Base, :get_extension)  # some 1.9 version
         @test SVector(3.0, 2.0) === @inferred setproperties(sv, x = 3.0)
         @test SVector(3.0, 5.0) === @inferred setproperties(sv, x = 3.0, y = 5.0)
         @test SVector(-1.0, -2.0) === @inferred setproperties(sv, data = (-1.0, -2))
-
         @test_throws "does not have properties z" setproperties(sv, z = 3.0)
+        @test_throws "does not have properties z" setproperties(SVector(1, 2, 3, 4, 5), z = 3.0)
     end
 
     @testset "intervalsets" begin

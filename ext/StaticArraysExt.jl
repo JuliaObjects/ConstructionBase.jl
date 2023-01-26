@@ -17,6 +17,7 @@ ConstructionBase.constructorof(::Type{<:MVector}) = MVector
     if KS == (:data,)
         :( constructorof(typeof(obj))(only(patch)) )
     else
+        N <= 4 || error("type $obj does not have properties $(join(KS, ", "))")
         propnames = (:x, :y, :z, :w)[1:N]
         KS ⊆ propnames || error("type $obj does not have properties $(join(KS, ", "))")
         field_exprs = map(enumerate(propnames)) do (i, p)
