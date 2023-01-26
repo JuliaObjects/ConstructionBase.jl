@@ -71,10 +71,20 @@ end
     end
 end
 
+# names are consecutive integers: return tuple
+# names are symbols: return namedtuple
+# names are empty (object has no properties): also return namedtuple, for backwards compat and generally makes more sense
+@inline tuple_or_ntuple(names::Tuple{}, vals::Tuple) = NamedTuple{names}(vals)
+@inline tuple_or_ntuple(names::Tuple{Vararg{Symbol}}, vals::Tuple) = NamedTuple{names}(vals)
+@inline function tuple_or_ntuple(names::Tuple{Vararg{Int}}, vals::Tuple)
+    @assert names === ntuple(identity, length(names))
+    vals
+end
+
 if VERSION >= v"1.7"
     function getproperties(obj)
         fnames = propertynames(obj)
-        NamedTuple{fnames}(getproperty.(Ref(obj), fnames))
+        tuple_or_ntuple(fnames, getproperty.(Ref(obj), fnames))
     end
     function getfields(obj::T) where {T}
         fnames = fieldnames(T)
