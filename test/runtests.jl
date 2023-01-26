@@ -298,6 +298,7 @@ Base.getproperty(obj::FieldProps, name::Symbol) = getproperty(getfield(obj, :com
     end
 end
 
+
 struct SProp
     names
 end
@@ -306,11 +307,15 @@ Base.getproperty(s::SProp, prop::Symbol) = "ps$prop"
 Base.getproperty(s::SProp, prop::Int) = "pi$prop"
 Base.getproperty(s::SProp, prop::String) = "pstr$prop"
 
-@testset "properties can be numbered" begin
-    @test getproperties(SProp((:a, :b))) === (a="psa", b="psb")
-    @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
-    # what should it return?
-    @test_broken getproperties(SProp(("a", "b")))
+if VERSION >= v"1.7"
+    # automatic getproperties() supported only on 1.7+
+
+    @testset "properties can be numbered" begin
+        @test getproperties(SProp((:a, :b))) === (a="psa", b="psb")
+        @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
+        # what should it return?
+        @test_broken getproperties(SProp(("a", "b")))
+    end
 end
 
 function funny_numbers(::Type{Tuple}, n)::Tuple
