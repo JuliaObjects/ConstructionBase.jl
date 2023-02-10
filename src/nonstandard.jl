@@ -52,3 +52,6 @@ constructorof(::Type{<:LinearAlgebra.Tridiagonal}) = tridiagonal_constructor
 linrange_constructor(start, stop, len, lendiv) = LinRange(start, stop, len)
 
 constructorof(::Type{<:LinRange}) = linrange_constructor
+
+### Expr: args get splatted
+constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)
