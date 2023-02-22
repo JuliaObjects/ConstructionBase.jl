@@ -52,23 +52,27 @@ function is_propertynames_overloaded(T::Type)::Bool
     which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
 end
 
-@generated function check_properties_are_fields(obj)
-    if is_propertynames_overloaded(obj)
-        return quote
-            T = typeof(obj)
-            msg = """
-            The function `Base.propertynames` was overloaded for type `$T`.
-            Please make sure the following methods are also overloaded for this type:
-            ```julia
-            ConstructionBase.setproperties
-            ConstructionBase.getproperties # optional in VERSION >= julia v1.7
-            ```
-            """
-            error(msg)
+if VERSION < v"1.10-"
+    @generated function check_properties_are_fields(obj)
+        if is_propertynames_overloaded(obj)
+            return quote
+                T = typeof(obj)
+                msg = """
+                The function `Base.propertynames` was overloaded for type `$T`.
+                Please make sure the following methods are also overloaded for this type:
+                ```julia
+                ConstructionBase.setproperties
+                ConstructionBase.getproperties # optional in VERSION >= julia v1.7
+                ```
+                """
+                error(msg)
+            end
+        else
+            :(nothing)
         end
-    else
-        :(nothing)
     end
+else
+    check_properties_are_fields(obj) = nothing
 end
 
 # names are consecutive integers: return tuple
