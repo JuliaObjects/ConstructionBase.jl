@@ -51,18 +51,10 @@ getproperties(o::Tuple) = o
 if VERSION >= v"1.7"
     function check_properties_are_fields(obj)
         if propertynames(obj) != fieldnames(typeof(obj))
-            T = typeof(obj)
-            msg = """
-            The function `Base.propertynames` was overloaded for type `$T`.
-            Please make sure the following methods are also overloaded for this type:
-            ```julia
-            ConstructionBase.setproperties
-            ConstructionBase.getproperties # optional in VERSION >= julia v1.7
-            ```
-            """
-            error(msg)
-        else
-            :(nothing)
+            error("""
+            The function `Base.propertynames` was overloaded for type `$(typeof(obj))`.
+            Please make sure `ConstructionBase.setproperties` is also overloaded for this type.
+            """)
         end
     end
 else
