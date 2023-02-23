@@ -48,13 +48,9 @@ getfields(x::NamedTuple) = x
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
-function is_propertynames_overloaded(T::Type)::Bool
-    which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
-end
-
-@generated function check_properties_are_fields(obj)
-    if is_propertynames_overloaded(obj)
-        return quote
+if VERSION >= v"1.7"
+    function check_properties_are_fields(obj)
+        if propertynames(obj) != fieldnames(typeof(obj))
             T = typeof(obj)
             msg = """
             The function `Base.propertynames` was overloaded for type `$T`.
@@ -65,9 +61,32 @@ end
             ```
             """
             error(msg)
+        else
+            :(nothing)
         end
-    else
-        :(nothing)
+    end
+else
+    function is_propertynames_overloaded(T::Type)::Bool
+        which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
+    end
+
+    @generated function check_properties_are_fields(obj)
+        if is_propertynames_overloaded(obj)
+            return quote
+                T = typeof(obj)
+                msg = """
+                The function `Base.propertynames` was overloaded for type `$T`.
+                Please make sure the following methods are also overloaded for this type:
+                ```julia
+                ConstructionBase.setproperties
+                ConstructionBase.getproperties # optional in VERSION >= julia v1.7
+                ```
+                """
+                error(msg)
+            end
+        else
+            :(nothing)
+        end
     end
 end
 
