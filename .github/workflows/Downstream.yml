@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        julia-version: [1.6, 1, 1.9-nightly, nightly]
+        julia-version: [1.6, 1, nightly]
         os: [ubuntu-latest]
         package:
           - {repo: JuliaObjects/Accessors.jl}
