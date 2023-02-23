@@ -48,27 +48,45 @@ getfields(x::NamedTuple) = x
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
-function is_propertynames_overloaded(T::Type)::Bool
-    which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
+@static if fieldcount(Core.GeneratedFunctionStub) == 3
+
+# after JuliaLang/julia#48611, generated functions should respect world ages
+
+function is_propertynames_overloaded_generator(world::UInt, source, self, obj)
+    sig = Base.signature_type(propertynames, Tuple{obj})
+    m = Base._which(sig; world).method
+    has_overload = m.sig !== Tuple{typeof(propertynames), Any}
+    stub = Core.GeneratedFunctionStub(identity, Core.svec(:is_propertynames_overloaded, :obj), Core.svec())
+    stub(world, source, :(return $has_overload))
 end
 
-@generated function check_properties_are_fields(obj)
+@eval function is_propertynames_overloaded(obj)
+    $(Expr(:meta, :generated_only))
+    $(Expr(:meta, :generated, is_propertynames_overloaded_generator))
+end
+
+else
+
+@generated function is_propertynames_overloaded(obj)
+    m = which(propertynames, Tuple{obj})
+    has_overload = m.sig !== Tuple{typeof(propertynames), Any}
+    :(return $has_overload)
+end
+
+end
+
+
+function check_properties_are_fields(obj::T) where T
     if is_propertynames_overloaded(obj)
-        return quote
-            T = typeof(obj)
-            msg = """
+        error("""
             The function `Base.propertynames` was overloaded for type `$T`.
             Please make sure the following methods are also overloaded for this type:
             ```julia
             ConstructionBase.setproperties
             ConstructionBase.getproperties # optional in VERSION >= julia v1.7
-            ```
-            """
-            error(msg)
-        end
-    else
-        :(nothing)
+            ```""")
     end
+    return
 end
 
 # names are consecutive integers: return tuple
