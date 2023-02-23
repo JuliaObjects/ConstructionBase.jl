@@ -291,7 +291,7 @@ Base.getproperty(obj::FieldProps, name::Symbol) = getproperty(getfield(obj, :com
  # == FieldProps((a="aaa", b=:b)
     if VERSION >= v"1.7"
         @test getproperties(x) == (a=1, b=:b)
-    elseif CAN_CHECK_PROPERTIES_ARE_FIELDS
+    elseif ConstructionBase.CAN_CHECK_PROPERTIES_ARE_FIELDS
         res = @test_throws ErrorException getproperties(x)
         msg = sprint(showerror, res.value)
         @test occursin("overload", msg)
