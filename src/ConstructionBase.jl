@@ -48,11 +48,13 @@ getfields(x::NamedTuple) = x
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
+const CAN_CHECK_PROPERTIES_ARE_FIELDS = VERSION < v"1.10-"
+
 function is_propertynames_overloaded(T::Type)::Bool
     which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
 end
 
-if VERSION < v"1.10-"
+if CAN_CHECK_PROPERTIES_ARE_FIELDS
     @generated function check_properties_are_fields(obj)
         if is_propertynames_overloaded(obj)
             return quote
@@ -72,7 +74,9 @@ if VERSION < v"1.10-"
         end
     end
 else
-    check_properties_are_fields(obj) = nothing
+    function check_properties_are_fields(obj)
+        nothing
+    end
 end
 
 # names are consecutive integers: return tuple
