@@ -194,6 +194,10 @@ end
         @inferred constructorof(typeof(lr1))(getfields(lr2)...)
     end
 
+    @testset "Expr" begin
+        e = :(a + b)
+        @test e == @inferred constructorof(typeof(e))(getfields(e)...)
+    end
 end
 
 @testset "Anonymous function constructors" begin
