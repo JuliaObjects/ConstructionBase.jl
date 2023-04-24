@@ -5,7 +5,7 @@
 [![Build Status](https://github.com/JuliaObjects/ConstructionBase.jl/workflows/CI/badge.svg)](https://github.com/JuliaObjects/ConstructionBase.jl/actions?query=workflow%3ACI)
 [![GitHub stars](https://img.shields.io/github/stars/JuliaObjects/ConstructionBase.jl?style=social)](https://github.com/JuliaObjects/ConstructionBase.jl)
 
-ConstructionBase is a very lightwight package, that provides primitive functions for construction of objects:
+ConstructionBase is a very lightweight package, that provides primitive functions for construction of objects:
 ```julia
 setproperties(obj::MyType, patch::NamedTuple)
 constructorof(MyType)
