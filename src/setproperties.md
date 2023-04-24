@@ -1,6 +1,7 @@
     setproperties(obj, patch::NamedTuple)
 
-Return a copy of `obj` with properties updates according to `patch`.
+
+Return a copy of `obj` with properties updated according to `patch`.
 
 # Examples
 ```jldoctest
