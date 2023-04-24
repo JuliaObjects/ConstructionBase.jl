@@ -36,8 +36,8 @@ function tridiagonal_constructor(dl::V, d::V, du::V, du2::V) where {V<:AbstractV
     Tridiagonal{T,V}(dl, d, du, du2)
 end
 
-# `du2` may be undefined, so we need a custom `getproperties` that checks `isdefined`
-function getproperties(o::Tridiagonal)
+# `du2` may be undefined, so we need a custom `getfields` that checks `isdefined`
+function getfields(o::Tridiagonal)
     if isdefined(o, :du2)
         (dl=o.dl, d=o.d, du=o.du, du2=o.du2) 
     else
@@ -52,3 +52,7 @@ constructorof(::Type{<:LinearAlgebra.Tridiagonal}) = tridiagonal_constructor
 linrange_constructor(start, stop, len, lendiv) = LinRange(start, stop, len)
 
 constructorof(::Type{<:LinRange}) = linrange_constructor
+
+### Expr: args get splatted
+# ::Expr annotation is to make it type-stable on Julia 1.3-
+constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr

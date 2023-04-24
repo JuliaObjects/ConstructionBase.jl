@@ -13,17 +13,10 @@ jobs:
       fail-fast: true
       matrix:
         version:
-          - '1.0'
-          - '1.3'
-          - '1.5'
-          - '1.6'
-          - '1.7'
           - '1'
           - 'nightly'
         os:
           - ubuntu-latest
-          - macOS-latest
-          - windows-latest
         arch:
           - x64
     steps:
@@ -33,4 +26,5 @@ jobs:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
       - uses: julia-actions/julia-buildpkg@latest
-      - uses: julia-actions/julia-runtest@latest
+      - name: Run tests without incremental precompilation
+        run: julia --compiled-modules=no --project -e "using Pkg; Pkg.test()"

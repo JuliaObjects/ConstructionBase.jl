@@ -3,6 +3,7 @@
 # one for them based on the types of args passed to FunctionConstructor
 
 struct FunctionConstructor{F} end
+_isgensym(s::Symbol) = occursin("#", string(s))
 
 @generated function (fc::FunctionConstructor{F})(args...) where F
     T = getfield(parentmodule(F), nameof(F))
@@ -20,4 +21,3 @@ function ConstructionBase.constructorof(f::Type{F}) where F <: Function
     FunctionConstructor{F}()
 end
 
-_isgensym(s::Symbol) = occursin("#", string(s))

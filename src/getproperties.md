@@ -1,6 +1,8 @@
-    getproperties(obj)
+    getproperties(obj)::NamedTuple
+    getproperties(obj::Tuple)::Tuple
 
-Return the fields of `obj` as a `NamedTuple`.
+Return the properties of `obj` as a `NamedTuple`. Since `Tuple` don't have symbolic properties,
+`getproperties` is the identity function on tuples.
 
 # Examples
 ```jldoctest
@@ -17,26 +19,31 @@ S(1, 2, 3)
 
 julia> getproperties(s)
 (a = 1, b = 2, c = 3)
+
+julia> getproperties((10,20))
+(10, 20)
 ```
-
-# Implementation
-
-`getproperties` is defined by default for all objects. However for a custom type `MyType`, 
-`getproperties(obj::MyType)` may be defined when objects may have undefined fields, 
-when it has calculated fields that should not be accessed or set manually, or
-other conditions that do not meet the specification with the default implementation.
 
 ## Specification
 
+`getproperties` belongs to [the semantic level](@ref the-semantic-level).
 `getproperties` guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:
 
-1. Relation to `propertynames` and `fieldnames`: `getproperties` relates to `propertynames` and `getproperty`, not to `fieldnames` and `getfield`.
-   This means that any series `p₁, p₂, ..., pₙ` of `propertynames(obj)` that is not undefined should be returned by `getproperties`.
-2. `getproperties` is defined in relation to `constructorof` so that:
-   ```julia
-   obj == constructorof(obj)(getproperties(obj)...)
-   ```
+1. `getproperties` should be consistent with `Base.propertynames`, `Base.getproperty`, `Base.setproperty!`. 
+    Semantically it should be equivalent to:
+    ```julia
+    function getproperties(obj)
+        fnames = propertynames(obj)
+        NamedTuple{fnames}(getproperty.(Ref(obj), fnames))
+    end
+    ```
 2. `getproperties` is defined in relation to `setproperties` so that:
    ```julia
    obj == setproperties(obj, getproperties(obj))
    ```
+   The only exception from this semantics is that undefined properties may be avoided 
+   in the return value of `getproperties`.
+
+# Implementation
+
+`getproperties` is defined by default for all objects. It should be very rare that a custom type `MyType`, has to implement `getproperties(obj::MyType)`. Reasons to do so are undefined fields or performance considerations.

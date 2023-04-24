@@ -1,13 +1,25 @@
 # ConstructionBase.jl
 
-```@index
-```
+[`ConstructionBase`](@ref) allows flexible construction and destructuring of objects.
+There are two levels of under which this can be done:
+### [The raw level](@id the-raw-level)
+This is where `Base.fieldnames`, `Base.getfield`, `Base.setfield!` live.
+This level is what an object is ultimately composed of including all private details.
+At the raw level [`ConstructionBase`](@ref) adds [`constructorof`](@ref) and [`getfields`](@ref).
+### [The semantic level](@id the-semantic-level)
+This is where `Base.propertynames`, `Base.getproperty` and `Base.setproperty!` live. This level is typically the public interface of a type, it may hide private details and do magic tricks.
+At the semantic level [`ConstructionBase`](@ref) adds [`setproperties`](@ref) and [`getproperties`](@ref).
+
 
 ## Interface
+
+```@index
+```
 
 ```@docs
 ConstructionBase
 ConstructionBase.constructorof
+ConstructionBase.getfields
 ConstructionBase.getproperties
 ConstructionBase.setproperties
 ```

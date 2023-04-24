@@ -32,17 +32,16 @@ julia> constructorof(S)(1,2,4)
 ERROR: AssertionError: a + b == checksum
 ```
 Instead `constructor` can be any object that satisfies the following properties:
-* It must be possible to reconstruct an object from the `NamedTuple` returned by
-`getproperties`:
+* It must be possible to reconstruct an object from the elements of [`getfields`](@ref):
 ```julia
 ctor = constructorof(typeof(obj))
-@assert obj == ctor(getproperties(obj)...)
-@assert typeof(obj) == typeof(ctor(getproperties(obj)...))
+@assert obj == ctor(getfields(obj)...)
+@assert typeof(obj) == typeof(ctor(getfields(obj)...))
 ```
 * The other direction should hold for as many values of `args` as possible:
 ```julia
 ctor = constructorof(T)
-getproperties(ctor(args...)) == args
+getfields(ctor(args...)) == args
 ```
 For instance given a suitable parametric type it should be possible to change
 the type of its fields:
@@ -61,7 +60,7 @@ T{Float64, Int64}(1.0, 2)
 julia> constructorof(typeof(t))(10, 2)
 T{Int64, Int64}(10, 2)
 ```
-
+`constructorof` belongs to [the raw level](@ref the-raw-level).
 `constructorof` is generated for all anonymous `Function`s lacking constructors,
 identified as having `gensym` `#` in their names. A custom struct `<: Function`
 with a `gensym` name may need to define `constructorof` manually.

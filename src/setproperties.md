@@ -1,6 +1,7 @@
     setproperties(obj, patch::NamedTuple)
 
-Return a copy of `obj` with attributes updates according to `patch`.
+
+Return a copy of `obj` with properties updated according to `patch`.
 
 # Examples
 ```jldoctest
@@ -44,23 +45,9 @@ julia> setproperties(o, a="A", c="cc")
 S("A", 2, "cc")
 ```
 
-# Implementation
-
-For a custom type `MyType`, a method `setproperties(obj::MyType, patch::NamedTuple)`
-may be defined.
-
-* Prefer to overload [`constructorof`](@ref) whenever makes sense (e.g., no `getproperty`
-  method is defined).  Default `setproperties` is defined in terms of `constructorof`.
-
-* If `getproperty` is customized, it may be a good idea to define `setproperties`.
-
-!!! warning
-    The signature `setproperties(obj::MyType; kw...)` should never be overloaded.
-    Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
-
 ## Specification
 
-`setproperties` guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:
+`setproperties` belongs to [the semantic level](@ref the-semantic-level). If satisfies the following invariants:
 
 1. Purity: `setproperties` is supposed to have no side effects. In particular `setproperties(obj, patch::NamedTuple)` may not mutate `obj`.
 2. Relation to `propertynames` and `fieldnames`: `setproperties` relates to `propertynames` and `getproperty`, not to `fieldnames` and `getfield`.
@@ -100,3 +87,18 @@ let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ)),
     @assert obj′′.$pₙ == wₙ
 end
 ```
+
+# Implementation
+
+For a custom type `MyType`, a method `setproperties(obj::MyType, patch::NamedTuple)`
+may be defined. When doing so it is important to ensure compliance with the specification.
+
+* Prefer to overload [`constructorof`](@ref) whenever makes sense (e.g., no `getproperty`
+  method is defined).  Default `setproperties` is defined in terms of `constructorof` and `getproperties`.
+
+* If `getproperty` is customized, it may be a good idea to define `setproperties`.
+
+!!! warning
+    The signature `setproperties(obj::MyType; kw...)` should never be overloaded.
+    Instead `setproperties(obj::MyType, patch::NamedTuple)` should be overloaded.
+
