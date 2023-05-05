@@ -1,4 +1,4 @@
-module StaticArraysExt
+module ConstructionBaseStaticArraysExt
 
 using ConstructionBase
 using StaticArrays
