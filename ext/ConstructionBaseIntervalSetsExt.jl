@@ -1,4 +1,4 @@
-module IntervalSetsExt
+module ConstructionBaseIntervalSetsExt
 
 using ConstructionBase
 using IntervalSets
