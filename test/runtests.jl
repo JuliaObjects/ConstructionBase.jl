@@ -319,6 +319,15 @@ if VERSION >= v"1.7"
         @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
         # what should it return?
         @test_broken getproperties(SProp(("a", "b")))
+
+        @test_throws ErrorException getproperties(SProp((1, :a)))
+    end
+
+    @testset "propertynames can be a vector" begin
+        @test getproperties(SProp([:a, :b])) === (a="psa", b="psb")
+        @test getproperties(SProp(Symbol[])) === (;)
+        @test getproperties(SProp([1, 2])) === ("pi1", "pi2")
+        @test getproperties(SProp(Int[])) === ()
     end
 end
 

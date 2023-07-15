@@ -82,15 +82,20 @@ else
     end
 end
 
-# names are consecutive integers: return tuple
-# names are symbols: return namedtuple
-# names are empty (object has no properties): also return namedtuple, for backwards compat and generally makes more sense
+# dispatch on eltype(names) to select Tuple vs NamedTuple
+@inline tuple_or_ntuple(names, vals) = tuple_or_ntuple(eltype(names), names, vals)
+# if names are empty (object has no properties): return namedtuple, for backwards compat and generally makes more sense than tuple
 @inline tuple_or_ntuple(names::Tuple{}, vals::Tuple) = NamedTuple{names}(vals)
-@inline tuple_or_ntuple(names::Tuple{Vararg{Symbol}}, vals::Tuple) = NamedTuple{names}(vals)
-@inline function tuple_or_ntuple(names::Tuple{Vararg{Int}}, vals::Tuple)
-    @assert names === ntuple(identity, length(names))
-    vals
+
+# names are consecutive integers: return tuple
+@inline function tuple_or_ntuple(::Type{Int}, names, vals)
+    @assert Tuple(names) == ntuple(identity, length(names))
+    Tuple(vals)
 end
+# names are symbols: return namedtuple
+@inline tuple_or_ntuple(::Type{Symbol}, names, vals) = NamedTuple{Tuple(names)}(vals)
+# otherwise: throw an error
+tuple_or_ntuple(::Type, names, vals) = error("Only Int and Symbol propertynames are supported")
 
 if VERSION >= v"1.7"
     function getproperties(obj)
