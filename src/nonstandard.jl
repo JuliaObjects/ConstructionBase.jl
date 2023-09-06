@@ -58,20 +58,16 @@ constructorof(::Type{<:LinRange}) = linrange_constructor
 constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
 
 ### Cholesky
-@generated function ConstructionBase.setproperties(
-    C::LinearAlgebra.Cholesky, patch::NamedTuple{names}
-) where {names}
-    # At most one of :L, :U, :UL can be patched.
-    ((:L in names) + (:U in names) + (:UL in names) <= 1) || return :(error("Can only patch one of :L, :U, :UL at the time"))
-    UL_expr = if :L in names
-        :(C.uplo === 'U' ? permutedims(patch.L) : patch.L)
-    elseif :U in names
-        :(C.uplo === 'L' ? permutedims(patch.U) : patch.U)
-    elseif :UL in names
-        :(patch.UL)
-    else
-        :(C.UL)
-    end
-
-    return :(LinearAlgebra.Cholesky($UL_expr, C.uplo, C.info))
+setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{()}) = C
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:L,)})
+    return LinearAlgebra.Cholesky(C.uplo === 'U' ? permutedims(patch.L) : patch.L, C.uplo, C.info)
+end
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:U,)})
+    return LinearAlgebra.Cholesky(C.uplo === 'L' ? permutedims(patch.U) : patch.U, C.uplo, C.info)
+end
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:UL,)})
+    return LinearAlgebra.Cholesky(patch.UL, C.uplo, C.info)
+end
+@nospecialize function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
+    error("Can only patch one of :L, :U, :UL at the time")
 end
