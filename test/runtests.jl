@@ -195,7 +195,9 @@ end
     end
 
     @testset "Cholesky" begin
-        X = Matrix(Diagonal(ones(3)))
+        # X = Matrix(Diagonal(ones(3)))
+        x = randn(3, 3)
+        X = x * x'
         @testset "uplo=$uplo" for uplo in ['L', 'U']
             C = Cholesky(X, uplo, 0)
 
@@ -207,37 +209,21 @@ end
                 end
 
                 # Update `L`.
-                C_new = ConstructionBase.setproperties(C, (L=parent(C.L),))
+                C_new = ConstructionBase.setproperties(C, (L=2 .* parent(C.L),))
                 for f in propertynames(C)
-                    @test getproperty(C_new, f) == getproperty(C, f)
+                    @test getproperty(C_new, f) == 2 .* getproperty(C, f)
                 end
 
                 # Update `U`.
-                C_new = ConstructionBase.setproperties(C, (U=parent(C.U),))
+                C_new = ConstructionBase.setproperties(C, (U=2 .* parent(C.U),))
                 for f in propertynames(C)
-                    @test getproperty(C_new, f) == getproperty(C, f)
+                    @test getproperty(C_new, f) == 2 .* getproperty(C, f)
                 end
 
                 # Update `UL`
-                C_new = ConstructionBase.setproperties(C, (UL=parent(C.UL),))
+                C_new = ConstructionBase.setproperties(C, (UL=2 .* parent(C.UL),))
                 for f in propertynames(C)
-                    @test getproperty(C_new, f) == getproperty(C, f)
-                end            # Update `L`.
-                C_new = ConstructionBase.setproperties(C, (L=parent(C.L),))
-                for f in propertynames(C)
-                    @test getproperty(C_new, f) == getproperty(C, f)
-                end
-
-                # Update `U`.
-                C_new = ConstructionBase.setproperties(C, (U=parent(C.U),))
-                for f in propertynames(C)
-                    @test getproperty(C_new, f) == getproperty(C, f)
-                end
-
-                # Update `UL`
-                C_new = ConstructionBase.setproperties(C, (UL=parent(C.UL),))
-                for f in propertynames(C)
-                    @test getproperty(C_new, f) == getproperty(C, f)
+                    @test getproperty(C_new, f) == 2 .* getproperty(C, f)
                 end
 
                 # Invalid patches.
