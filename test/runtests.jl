@@ -227,9 +227,10 @@ end
                 end
 
                 # Invalid patches.
-                @test_throws ErrorException ConstructionBase.setproperties(C, (L=parent(C.L), U=parent(C.U),))
-                @test_throws ErrorException ConstructionBase.setproperties(C, (UL=parent(C.UL), U=parent(C.U),))
-                @test_throws ErrorException ConstructionBase.setproperties(C, (UL=parent(C.UL), L=parent(C.L),))
+                @test_throws "Can only patch one of" ConstructionBase.setproperties(C, (L=parent(C.L), U=parent(C.U),))
+                @test_throws "Can only patch one of" ConstructionBase.setproperties(C, (UL=parent(C.UL), U=parent(C.U),))
+                @test_throws "Can only patch one of" ConstructionBase.setproperties(C, (UL=parent(C.UL), L=parent(C.L),))
+                @test_throws "Invalid patch" ConstructionBase.setproperties(C, (asdf=parent(C.UL),))
             end
         end
     end

@@ -68,6 +68,10 @@ end
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:UL,)})
     return LinearAlgebra.Cholesky(patch.UL, C.uplo, C.info)
 end
-@nospecialize function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
-    error("Can only patch one of :L, :U, :UL at the time")
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
+    if haskey(patch, :L) || haskey(patch, :U) || haskey(patch, :UL)
+        throw(ArgumentError("Can only patch one of :L, :U, :UL at the time"))
+    end
+
+    throw(ArgumentError("Invalid patch for `Cholesky`: $(patch)"))
 end
