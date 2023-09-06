@@ -56,3 +56,22 @@ constructorof(::Type{<:LinRange}) = linrange_constructor
 ### Expr: args get splatted
 # ::Expr annotation is to make it type-stable on Julia 1.3-
 constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
+
+### Cholesky
+@generated function ConstructionBase.setproperties(
+    C::LinearAlgebra.Cholesky, patch::NamedTuple{names}
+) where {names}
+    # At most one of :L, :U, :UL can be patched.
+    ((:L in names) + (:U in names) + (:UL in names) <= 1) || return :(error("Can only patch one of :L, :U, :UL at the time"))
+    UL_expr = if :L in names
+        :(C.uplo === 'U' ? permutedims(patch.L) : patch.L)
+    elseif :U in names
+        :(C.uplo === 'L' ? permutedims(patch.U) : patch.U)
+    elseif :UL in names
+        :(patch.UL)
+    else
+        :(C.UL)
+    end
+
+    return :(LinearAlgebra.Cholesky($UL_expr, C.uplo, C.info))
+end

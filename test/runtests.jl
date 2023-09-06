@@ -194,6 +194,60 @@ end
         @inferred constructorof(typeof(lr1))(getfields(lr2)...)
     end
 
+    @testset "Cholesky" begin
+        X = Matrix(Diagonal(ones(3)))
+        @testset "uplo=$uplo" for uplo in ['L', 'U']
+            C = Cholesky(X, uplo, 0)
+
+            @testset "only setting value" begin
+                # Empty patch.
+                C_new = ConstructionBase.setproperties(C, NamedTuple())
+                for f in propertynames(C)
+                    @test getproperty(C_new, f) == getproperty(C, f)
+                end
+
+                # Update `L`.
+                C_new = ConstructionBase.setproperties(C, (L=parent(C.L),))
+                for f in propertynames(C)
+                    @test getproperty(C_new, f) == getproperty(C, f)
+                end
+
+                # Update `U`.
+                C_new = ConstructionBase.setproperties(C, (U=parent(C.U),))
+                for f in propertynames(C)
+                    @test getproperty(C_new, f) == getproperty(C, f)
+                end
+
+                # Update `UL`
+                C_new = ConstructionBase.setproperties(C, (UL=parent(C.UL),))
+                for f in propertynames(C)
+                    @test getproperty(C_new, f) == getproperty(C, f)
+                end            # Update `L`.
+                C_new = ConstructionBase.setproperties(C, (L=parent(C.L),))
+                for f in propertynames(C)
+                    @test getproperty(C_new, f) == getproperty(C, f)
+                end
+
+                # Update `U`.
+                C_new = ConstructionBase.setproperties(C, (U=parent(C.U),))
+                for f in propertynames(C)
+                    @test getproperty(C_new, f) == getproperty(C, f)
+                end
+
+                # Update `UL`
+                C_new = ConstructionBase.setproperties(C, (UL=parent(C.UL),))
+                for f in propertynames(C)
+                    @test getproperty(C_new, f) == getproperty(C, f)
+                end
+
+                # Invalid patches.
+                @test_throws ErrorException ConstructionBase.setproperties(C, (L=parent(C.L), U=parent(C.U),))
+                @test_throws ErrorException ConstructionBase.setproperties(C, (UL=parent(C.UL), U=parent(C.U),))
+                @test_throws ErrorException ConstructionBase.setproperties(C, (UL=parent(C.UL), L=parent(C.L),))
+            end
+        end
+    end
+
     @testset "Expr" begin
         e = :(a + b)
         @test e == @inferred constructorof(typeof(e))(getfields(e)...)
