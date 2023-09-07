@@ -203,24 +203,28 @@ end
             @testset "only setting value" begin
                 # Empty patch.
                 C_new = ConstructionBase.setproperties(C, NamedTuple())
+                @test typeof(C_new) === typeof(C)
                 for f in propertynames(C)
                     @test getproperty(C_new, f) == getproperty(C, f)
                 end
 
                 # Update `L`.
                 C_new = ConstructionBase.setproperties(C, (L=2 .* parent(C.L),))
+                @test typeof(C_new) === typeof(C)
                 for f in propertynames(C)
                     @test getproperty(C_new, f) == 2 .* getproperty(C, f)
                 end
 
                 # Update `U`.
                 C_new = ConstructionBase.setproperties(C, (U=2 .* parent(C.U),))
+                @test typeof(C_new) === typeof(C)
                 for f in propertynames(C)
                     @test getproperty(C_new, f) == 2 .* getproperty(C, f)
                 end
 
                 # Update `UL`
                 C_new = ConstructionBase.setproperties(C, (UL=2 .* parent(C.UL),))
+                @test typeof(C_new) === typeof(C)
                 for f in propertynames(C)
                     @test getproperty(C_new, f) == 2 .* getproperty(C, f)
                 end
