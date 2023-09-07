@@ -60,13 +60,13 @@ constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
 ### Cholesky
 setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{()}) = C
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:L,)})
-    return LinearAlgebra.Cholesky(C.uplo === 'U' ? permutedims(patch.L) : patch.L, C.uplo, C.info)
+    return LinearAlgebra.Cholesky(parent(C.uplo === 'U' ? permutedims(patch.L) : patch.L), C.uplo, C.info)
 end
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:U,)})
-    return LinearAlgebra.Cholesky(C.uplo === 'L' ? permutedims(patch.U) : patch.U, C.uplo, C.info)
+    return LinearAlgebra.Cholesky(parent(C.uplo === 'L' ? permutedims(patch.U) : patch.U), C.uplo, C.info)
 end
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:UL,)})
-    return LinearAlgebra.Cholesky(patch.UL, C.uplo, C.info)
+    return LinearAlgebra.Cholesky(parent(patch.UL), C.uplo, C.info)
 end
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
     throw(ArgumentError("Invalid patch for `Cholesky`: $(patch)"))
