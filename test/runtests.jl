@@ -195,7 +195,6 @@ end
     end
 
     @testset "Cholesky" begin
-        # X = Matrix(Diagonal(ones(3)))
         x = randn(3, 3)
         X = x * x'
         @testset "uplo=$uplo" for uplo in ['L', 'U']
