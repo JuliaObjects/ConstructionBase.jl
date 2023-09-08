@@ -194,6 +194,52 @@ end
         @inferred constructorof(typeof(lr1))(getfields(lr2)...)
     end
 
+    @testset "Cholesky" begin
+        x = randn(3, 3)
+        X = x * x'
+        @testset "uplo=$uplo" for uplo in ['L', 'U']
+            C = Cholesky(X, uplo, 0)
+
+            # Empty patch.
+            C_new = ConstructionBase.setproperties(C, NamedTuple())
+            @test typeof(C_new) === typeof(C)
+            for f in propertynames(C)
+                @test getproperty(C_new, f) == getproperty(C, f)
+            end
+
+            # Update `L`.
+            C_new = ConstructionBase.setproperties(C, (L=2 * C.L,))
+            @test typeof(C_new) === typeof(C)
+            for f in propertynames(C)
+                @test getproperty(C_new, f) == 2 * getproperty(C, f)
+            end
+
+            # Update `U`.
+            C_new = ConstructionBase.setproperties(C, (U=2 * C.U,))
+            @test typeof(C_new) === typeof(C)
+            for f in propertynames(C)
+                @test getproperty(C_new, f) == 2 * getproperty(C, f)
+            end
+
+            # Update `UL`
+            C_new = ConstructionBase.setproperties(C, (UL=2 * C.UL,))
+            @test typeof(C_new) === typeof(C)
+            for f in propertynames(C)
+                @test getproperty(C_new, f) == 2 * getproperty(C, f)
+            end
+
+            # We can only set the properties with `LowerTriangular` or `UpperTriangular` matrices.
+            @test_throws ArgumentError ConstructionBase.setproperties(C, (L=parent(C.L),))
+            @test_throws ArgumentError ConstructionBase.setproperties(C, (U=parent(C.U),))
+            # Can only set one at the time.
+            @test_throws ArgumentError ConstructionBase.setproperties(C, (L=C.L, U=C.U,))
+            @test_throws ArgumentError ConstructionBase.setproperties(C, (UL=C.UL, U=C.U,))
+            @test_throws ArgumentError ConstructionBase.setproperties(C, (UL=C.UL, L=C.L,))
+            # And make sure any other patch will fail.
+            @test_throws ArgumentError ConstructionBase.setproperties(C, (asdf=C.UL,))
+        end
+    end
+
     @testset "Expr" begin
         e = :(a + b)
         @test e == @inferred constructorof(typeof(e))(getfields(e)...)
