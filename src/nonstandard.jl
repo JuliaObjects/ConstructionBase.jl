@@ -69,7 +69,7 @@ function setproperties(
     C::LinearAlgebra.Cholesky,
     patch::NamedTuple{(:UL,),Tuple{UL}}
 ) where {UL<:Union{LinearAlgebra.LowerTriangular,LinearAlgebra.UpperTriangular}}
-    return LinearAlgebra.Cholesky(parent(patch.UL), C.uplo, C.info)
+    return LinearAlgebra.Cholesky(patch.UL.data, C.uplo, C.info)
 end
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
     throw(ArgumentError("Invalid patch for `Cholesky`: $(patch)"))
