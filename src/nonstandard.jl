@@ -59,16 +59,16 @@ constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
 
 ### Cholesky
 setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{()}) = C
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:L,),Tuple{L}}) where {L<:LinearAlgebra.LowerTriangular}
-    return LinearAlgebra.Cholesky(C.uplo === 'U' ? copy(transpose(patch.L.data)) : patch.L.data, C.uplo, C.info)
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:L,),Tuple{<:LinearAlgebra.LowerTriangular}})
+    return LinearAlgebra.Cholesky(C.uplo === 'U' ? copy(patch.L.data') : patch.L.data, C.uplo, C.info)
 end
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:U,),Tuple{U}}) where {U<:LinearAlgebra.UpperTriangular}
-    return LinearAlgebra.Cholesky(C.uplo === 'L' ? copy(transpose(patch.U.data)) : patch.U.data, C.uplo, C.info)
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:U,),Tuple{<:LinearAlgebra.UpperTriangular}})
+    return LinearAlgebra.Cholesky(C.uplo === 'L' ? copy(patch.U.data') : patch.U.data, C.uplo, C.info)
 end
 function setproperties(
     C::LinearAlgebra.Cholesky,
-    patch::NamedTuple{(:UL,),Tuple{UL}}
-) where {UL<:Union{LinearAlgebra.LowerTriangular,LinearAlgebra.UpperTriangular}}
+    patch::NamedTuple{(:UL,),Tuple{<:Union{LinearAlgebra.LowerTriangular,LinearAlgebra.UpperTriangular}}}
+)
     return LinearAlgebra.Cholesky(patch.UL.data, C.uplo, C.info)
 end
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
