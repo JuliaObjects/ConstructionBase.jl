@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · ConstructionBase.jl</title><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>ConstructionBase.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Interface"><span>Interface</span></a></li><li><a class="tocitem" href="#type-tips"><span>Tips for designing types</span></a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/master/docs/src/index.md#L" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="ConstructionBase.jl"><a class="docs-heading-anchor" href="#ConstructionBase.jl">ConstructionBase.jl</a><a id="ConstructionBase.jl-1"></a><a class="docs-heading-anchor-permalink" href="#ConstructionBase.jl" title="Permalink"></a></h1><p><a href="#ConstructionBase"><code>ConstructionBase</code></a> allows flexible construction and destructuring of objects. There are two levels of under which this can be done:</p><h3 id="the-raw-level"><a class="docs-heading-anchor" href="#the-raw-level">The raw level</a><a id="the-raw-level-1"></a><a class="docs-heading-anchor-permalink" href="#the-raw-level" title="Permalink"></a></h3><p>This is where <code>Base.fieldnames</code>, <code>Base.getfield</code>, <code>Base.setfield!</code> live. This level is what an object is ultimately composed of including all private details. At the raw level <a href="#ConstructionBase"><code>ConstructionBase</code></a> adds <a href="#ConstructionBase.constructorof"><code>constructorof</code></a> and <a href="#ConstructionBase.getfields"><code>getfields</code></a>.</p><h3 id="the-semantic-level"><a class="docs-heading-anchor" href="#the-semantic-level">The semantic level</a><a id="the-semantic-level-1"></a><a class="docs-heading-anchor-permalink" href="#the-semantic-level" title="Permalink"></a></h3><p>This is where <code>Base.propertynames</code>, <code>Base.getproperty</code> and <code>Base.setproperty!</code> live. This level is typically the public interface of a type, it may hide private details and do magic tricks. At the semantic level <a href="#ConstructionBase"><code>ConstructionBase</code></a> adds <a href="#ConstructionBase.setproperties"><code>setproperties</code></a> and <a href="#ConstructionBase.getproperties"><code>getproperties</code></a>.</p><h2 id="Interface"><a class="docs-heading-anchor" href="#Interface">Interface</a><a id="Interface-1"></a><a class="docs-heading-anchor-permalink" href="#Interface" title="Permalink"></a></h2><ul><li><a href="#ConstructionBase"><code>ConstructionBase</code></a></li><li><a href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a></li><li><a href="#ConstructionBase.getfields"><code>ConstructionBase.getfields</code></a></li><li><a href="#ConstructionBase.getproperties"><code>ConstructionBase.getproperties</code></a></li><li><a href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a></li></ul><article class="docstring"><header><a class="docstring-binding" id="ConstructionBase" href="#ConstructionBase"><code>ConstructionBase</code></a> — <span class="docstring-category">Module</span></header><section><div><p><strong>ConstructionBase</strong></p><p><a href="https://JuliaObjects.github.io/ConstructionBase.jl/stable"><img src="https://img.shields.io/badge/docs-stable-blue.svg" alt="Stable"/></a> <a href="https://JuliaObjects.github.io/ConstructionBase.jl/dev"><img src="https://img.shields.io/badge/docs-dev-blue.svg" alt="Dev"/></a> <a href="https://github.com/JuliaObjects/ConstructionBase.jl/actions?query=workflow%3ACI"><img src="https://github.com/JuliaObjects/ConstructionBase.jl/workflows/CI/badge.svg" alt="Build Status"/></a> <a href="https://github.com/JuliaObjects/ConstructionBase.jl"><img src="https://img.shields.io/github/stars/JuliaObjects/ConstructionBase.jl?style=social" alt="GitHub stars"/></a></p><p>ConstructionBase is a very lightweight package, that provides primitive functions for construction of objects:</p><pre><code class="language-julia hljs">setproperties(obj::MyType, patch::NamedTuple)
+constructorof(MyType)</code></pre><p>These functions can be overloaded and doing so provides interoperability with the following packages:</p><ul><li><a href="https://github.com/rafaqz/Flatten.jl">Flatten.jl</a></li><li><a href="https://github.com/jw3126/Setfield.jl">Setfield.jl</a></li><li><a href="https://github.com/tkf/BangBang.jl">BangBang.jl</a></li><li><a href="https://github.com/JuliaObjects/Accessors.jl">Accessors.jl</a></li><li><a href="https://github.com/rafaqz/ModelParameters.jl">ModelParameters.jl</a></li></ul></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/8e3e773c7ee65a664fae6af11dd0ccdc5ef6478a/src/ConstructionBase.jl#LL23-L42">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ConstructionBase.constructorof" href="#ConstructionBase.constructorof"><code>ConstructionBase.constructorof</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">constructorof(T::Type) -&gt; constructor</code></pre><p>Return an object <code>constructor</code> that can be used to construct objects of type <code>T</code> from their field values. Typically <code>constructor</code> will be the type <code>T</code> with all parameters removed:</p><pre><code class="language-julia-repl hljs">julia&gt; using ConstructionBase
+
+julia&gt; struct T{A,B}
+           a::A
+           b::B
+       end
+
+julia&gt; constructorof(T{Int,Int})
+T</code></pre><p>It is however not guaranteed, that <code>constructor</code> is a type at all:</p><pre><code class="language-julia-repl hljs">julia&gt; struct S
+           a
+           b
+           checksum
+           S(a,b) = new(a,b,a+b)
+       end
+
+julia&gt; ConstructionBase.constructorof(::Type{&lt;:S}) =
+           (a, b, checksum=a+b) -&gt; (@assert a+b == checksum; S(a,b))
+
+julia&gt; constructorof(S)(1,2)
+S(1, 2, 3)
+
+julia&gt; constructorof(S)(1,2,4)
+ERROR: AssertionError: a + b == checksum</code></pre><p>Instead <code>constructor</code> can be any object that satisfies the following properties:</p><ul><li>It must be possible to reconstruct an object from the elements of <a href="#ConstructionBase.getfields"><code>getfields</code></a>:</li></ul><pre><code class="language-julia hljs">ctor = constructorof(typeof(obj))
+@assert obj == ctor(getfields(obj)...)
+@assert typeof(obj) == typeof(ctor(getfields(obj)...))</code></pre><ul><li>The other direction should hold for as many values of <code>args</code> as possible:</li></ul><pre><code class="language-julia hljs">ctor = constructorof(T)
+getfields(ctor(args...)) == args</code></pre><p>For instance given a suitable parametric type it should be possible to change the type of its fields:</p><pre><code class="language-julia-repl hljs">julia&gt; struct T{A,B}
+           a::A
+           b::B
+       end
+
+julia&gt; t = T(1,2)
+T{Int64, Int64}(1, 2)
+
+julia&gt; constructorof(typeof(t))(1.0, 2)
+T{Float64, Int64}(1.0, 2)
+
+julia&gt; constructorof(typeof(t))(10, 2)
+T{Int64, Int64}(10, 2)</code></pre><p><code>constructorof</code> belongs to <a href="#the-raw-level">the raw level</a>. <code>constructorof</code> is generated for all anonymous <code>Function</code>s lacking constructors, identified as having <code>gensym</code> <code>#</code> in their names. A custom struct <code>&lt;: Function</code> with a <code>gensym</code> name may need to define <code>constructorof</code> manually.</p><p>See also <a href="#type-tips">Tips section in the manual</a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/8e3e773c7ee65a664fae6af11dd0ccdc5ef6478a/src/ConstructionBase.jl#LL23-L93">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ConstructionBase.getfields" href="#ConstructionBase.getfields"><code>ConstructionBase.getfields</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">getfields(obj) -&gt; NamedTuple
+getfields(obj::Tuple) -&gt; Tuple</code></pre><p>Return a <code>NamedTuple</code> containing the fields of <code>obj</code>. On <code>Tuples</code> <code>getfields</code> is the identity function instead, since <code>Tuple</code> fields have no symbolic names.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; using ConstructionBase
+
+julia&gt; struct S{A,B}
+           a::A
+           b::B
+       end
+
+julia&gt; getfields(S(1,2))
+(a = 1, b = 2)
+
+julia&gt; getfields((a=10,b=20))
+(a = 10, b = 20)
+
+julia&gt; getfields((4,5,6))
+(4, 5, 6)</code></pre><p><strong>Specification</strong></p><p><code>getfields</code> belongs to the <a href="#the-raw-level">the raw level</a>. Semantically <code>getfields</code> boils down to <code>getfield</code> and <code>fieldnames</code>:</p><pre><code class="language-julia hljs">function getfields(obj::T) where {T}
+    fnames = fieldnames(T)
+    NamedTuple{fnames}(getfield.(Ref(obj), fnames))
+end</code></pre><p>However the actual implementation can be more optimized. For builtin types, there can also be deviations from this semantics:</p><ul><li><code>getfields(::Tuple)::Tuple</code> since <code>Tuples</code> don&#39;t have symbolic fieldnames</li><li>There are some types in <code>Base</code> that have <code>undef</code> fields. Since accessing these results in an error, <code>getfields</code> instead just omits these.</li></ul><p><strong>Implementation</strong></p><p>The semantics of <code>getfields</code> should not be changed for user defined types. It should  return the raw fields as a <code>NamedTuple</code> in the struct order. In other words it should be equivalent to</p><pre><code class="language-julia hljs">function getfields(obj::T) where {T}
+    fnames = fieldnames(T)
+    NamedTuple{fnames}(getfield.(Ref(obj), fnames))
+end</code></pre><p>even if that includes private fields of <code>obj</code>. If a change of semantics is desired, consider overloading <a href="#ConstructionBase.getproperties"><code>getproperties</code></a> instead. See also <a href="#ConstructionBase.getproperties"><code>getproperties</code></a>, <a href="#ConstructionBase.constructorof"><code>constructorof</code></a></p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/8e3e773c7ee65a664fae6af11dd0ccdc5ef6478a/src/ConstructionBase.jl#LL23-L77">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ConstructionBase.getproperties" href="#ConstructionBase.getproperties"><code>ConstructionBase.getproperties</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">getproperties(obj)::NamedTuple
+getproperties(obj::Tuple)::Tuple</code></pre><p>Return the properties of <code>obj</code> as a <code>NamedTuple</code>. Since <code>Tuple</code> don&#39;t have symbolic properties, <code>getproperties</code> is the identity function on tuples.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; using ConstructionBase
+
+julia&gt; struct S
+           a
+           b
+           c
+       end
+
+julia&gt; s = S(1, 2, 3)
+S(1, 2, 3)
+
+julia&gt; getproperties(s)
+(a = 1, b = 2, c = 3)
+
+julia&gt; getproperties((10,20))
+(10, 20)</code></pre><p><strong>Specification</strong></p><p><code>getproperties</code> belongs to <a href="#the-semantic-level">the semantic level</a>. <code>getproperties</code> guarantees a couple of invariants. When overloading it, the user is responsible for ensuring them:</p><ol><li><code>getproperties</code> should be consistent with <code>Base.propertynames</code>, <code>Base.getproperty</code>, <code>Base.setproperty!</code>.   Semantically it should be equivalent to:  <code>julia  function getproperties(obj)      fnames = propertynames(obj)      NamedTuple{fnames}(getproperty.(Ref(obj), fnames))  end</code></li><li><code>getproperties</code> is defined in relation to <code>setproperties</code> so that:<pre><code class="language-julia hljs">obj == setproperties(obj, getproperties(obj))</code></pre>The only exception from this semantics is that undefined properties may be avoided  in the return value of <code>getproperties</code>.</li></ol><p><strong>Implementation</strong></p><p><code>getproperties</code> is defined by default for all objects. It should be very rare that a custom type <code>MyType</code>, has to implement <code>getproperties(obj::MyType)</code>. Reasons to do so are undefined fields or performance considerations.</p></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/8e3e773c7ee65a664fae6af11dd0ccdc5ef6478a/src/ConstructionBase.jl#LL23-L73">source</a></section></article><article class="docstring"><header><a class="docstring-binding" id="ConstructionBase.setproperties" href="#ConstructionBase.setproperties"><code>ConstructionBase.setproperties</code></a> — <span class="docstring-category">Function</span></header><section><div><pre><code class="language-julia hljs">setproperties(obj, patch::NamedTuple)</code></pre><p>Return a copy of <code>obj</code> with properties updated according to <code>patch</code>.</p><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; using ConstructionBase
+
+julia&gt; struct S
+           a
+           b
+           c
+       end
+
+julia&gt; s = S(1,2,3)
+S(1, 2, 3)
+
+julia&gt; setproperties(s, (a=10,c=4))
+S(10, 2, 4)
+
+julia&gt; setproperties((a=1,c=2,b=3), (a=10,c=4))
+(a = 10, c = 4, b = 3)</code></pre><p>There is also a convenience method, which builds the <code>patch</code> argument from keywords:</p><pre><code class="nohighlight hljs">setproperties(obj; kw...)</code></pre><p><strong>Examples</strong></p><pre><code class="language-julia-repl hljs">julia&gt; using ConstructionBase
+
+julia&gt; struct S
+           a
+           b
+           c
+       end
+
+julia&gt; o = S(10, 2, 4)
+S(10, 2, 4)
+
+julia&gt; setproperties(o, a=&quot;A&quot;, c=&quot;cc&quot;)
+S(&quot;A&quot;, 2, &quot;cc&quot;)</code></pre><p><strong>Specification</strong></p><p><code>setproperties</code> belongs to <a href="#the-semantic-level">the semantic level</a>. If satisfies the following invariants:</p><ol><li>Purity: <code>setproperties</code> is supposed to have no side effects. In particular <code>setproperties(obj, patch::NamedTuple)</code> may not mutate <code>obj</code>.</li><li>Relation to <code>propertynames</code> and <code>fieldnames</code>: <code>setproperties</code> relates to <code>propertynames</code> and <code>getproperty</code>, not to <code>fieldnames</code> and <code>getfield</code>. This means that any subset <code>p₁, p₂, ..., pₙ</code> of <code>propertynames(obj)</code> is a valid set of properties, with respect to which the lens laws below must hold.</li><li><code>setproperties</code> is defined in relation to <code>getproperties</code> so that:<pre><code class="language-julia hljs">obj == setproperties(obj, getproperties(obj))</code></pre></li><li><code>setproperties</code> should satisfy the lens laws:</li></ol><p>For any valid set of properties <code>p₁, p₂, ..., pₙ</code>, following equalities must hold:</p><ul><li>You get what you set.</li></ul><pre><code class="language-julia hljs">let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ))
+    @assert obj′.$p₁ == v₁
+    @assert obj′.$p₂ == v₂
+    ...
+    @assert obj′.$pₙ == vₙ
+end</code></pre><ul><li>Setting what was already there changes nothing:</li></ul><pre><code class="language-julia hljs">@assert setproperties(obj, ($p₁=obj.$p₁, $p₂=obj.$p₂, ..., $pₙ=obj.$pₙ)) == obj</code></pre><ul><li>The last set wins:</li></ul><pre><code class="language-julia hljs">let obj′ = setproperties(obj, ($p₁=v₁, $p₂=v₂, ..., $pₙ=vₙ)),
+    obj′′ = setproperties(obj′, ($p₁=w₁, $p₂=w₂, ..., $pₙ=wₙ))
+    @assert obj′′.$p₁ == w₁
+    @assert obj′′.$p₂ == w₂
+    ...
+    @assert obj′′.$pₙ == wₙ
+end</code></pre><p><strong>Implementation</strong></p><p>For a custom type <code>MyType</code>, a method <code>setproperties(obj::MyType, patch::NamedTuple)</code> may be defined. When doing so it is important to ensure compliance with the specification.</p><ul><li><p>Prefer to overload <a href="#ConstructionBase.constructorof"><code>constructorof</code></a> whenever makes sense (e.g., no <code>getproperty</code> method is defined).  Default <code>setproperties</code> is defined in terms of <code>constructorof</code> and <code>getproperties</code>.</p></li><li><p>If <code>getproperty</code> is customized, it may be a good idea to define <code>setproperties</code>.</p></li></ul><div class="admonition is-warning"><header class="admonition-header">Warning</header><div class="admonition-body"><p>The signature <code>setproperties(obj::MyType; kw...)</code> should never be overloaded. Instead <code>setproperties(obj::MyType, patch::NamedTuple)</code> should be overloaded.</p></div></div></div><a class="docs-sourcelink" target="_blank" href="https://github.com/JuliaObjects/ConstructionBase.jl/blob/8e3e773c7ee65a664fae6af11dd0ccdc5ef6478a/src/ConstructionBase.jl#LL23-L128">source</a></section></article><h2 id="type-tips"><a class="docs-heading-anchor" href="#type-tips">Tips for designing types</a><a id="type-tips-1"></a><a class="docs-heading-anchor-permalink" href="#type-tips" title="Permalink"></a></h2><p>When designing types from scratch, it is often possible to structure the types in such a way that overloading <code>constructorof</code> or <code>setproperties</code> is unnecessary in the first place.  It let types in your package work nicely with the ecosystem built on top of <code>ConstructionBase</code> even without explicitly depending on it. For simple <code>struct</code>s whose type parameters can be determined from field values, <code>ConstructionBase</code> works without any customization, provided that the &quot;type-less&quot; constructor exists.  However, it is often useful or required to have type parameters that cannot be determined from field values. One way to solve this problem is to define singleton types that would determine the type parameters:</p><pre><code class="language-julia hljs">abstract type OutputBy end
+struct Mutating &lt;: OutputBy end
+struct Returning &lt;: OutputBy end
+
+struct Add{O &lt;: OutputBy, T}
+    outputby::O
+    value::T
+end
+
+(f::Add{Mutating})(y, x) = y .= x .+ f.value
+(f::Add{Returning})(x) = x .+ f.value
+
+add1! = Add(Mutating(), 1)
+
+using ConstructionBase
+add2 = constructorof(typeof(add1!))(Returning(), 2)
+add2(1)
+
+# output
+
+3</code></pre><p><code>setproperties</code> works as well:</p><pre><code class="language-julia hljs">add3 = setproperties(add2; value=3)
+add3(1)
+
+# output
+
+4</code></pre><p>Note that no overloading of <code>ConstructionBase</code> functions was required. Importantly, this also provides an interface to change type parameters out-of-the-box:</p><pre><code class="language-julia hljs">add3! = setproperties(add3; outputby=Mutating())
+add3!([0], 1)
+
+# output
+
+1-element Vector{Int64}:
+ 4</code></pre><p>Furthermore, it would work with packages depending on <code>ConstructionBase</code> such as <a href="https://github.com/jw3126/Setfield.jl">Setfield.jl</a>.</p><pre><code class="language-julia hljs">using Setfield: @set
+add3′ = @set add3!.outputby = Returning()
+add3′ === add3
+
+# output
+
+true</code></pre><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>If it is desirable to keep fields as an implementation detail, combining trait functions and <a href="https://jw3126.github.io/Setfield.jl/latest/#Setfield.FunctionLens"><code>Setfield.FunctionLens</code></a> may be useful:</p><pre><code class="language-julia hljs">OutputBy(x) = typeof(x)
+OutputBy(::Type{&lt;:Add{O}}) where O = O()
+
+using Setfield: Setfield, @lens
+Setfield.set(add::Add, ::typeof(@lens OutputBy(_)), o::OutputBy) =
+    @set add.outputby = o
+
+obj = (add=add3!,)
+obj′ = @set OutputBy(obj.add) = Returning()
+obj′ === (add=add3,)
+
+# output
+
+true</code></pre><pre><code class="language-julia hljs">Setfield.set(::Type{Add{O0, T}}, ::typeof(@lens OutputBy(_)), ::O1) where {O0, T, O1 &lt;: OutputBy} =
+    Add{O1, T}
+
+T1 = typeof(add3!)
+T2 = @set OutputBy(T1) = Returning()
+T2 &lt;: Add{Returning}
+
+# output
+
+true</code></pre></div></div></article><nav class="docs-footer"><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.15 on <span class="colophon-date" title="Friday 8 September 2023 17:21">Friday 8 September 2023</span>. Using Julia version 1.9.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
