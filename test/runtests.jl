@@ -208,24 +208,24 @@ end
             end
 
             # Update `L`.
-            C_new = ConstructionBase.setproperties(C, (L=2 .* C.L,))
+            C_new = ConstructionBase.setproperties(C, (L=2 * C.L,))
             @test typeof(C_new) === typeof(C)
             for f in propertynames(C)
-                @test getproperty(C_new, f) == 2 .* getproperty(C, f)
+                @test getproperty(C_new, f) == 2 * getproperty(C, f)
             end
 
             # Update `U`.
-            C_new = ConstructionBase.setproperties(C, (U=2 .* C.U,))
+            C_new = ConstructionBase.setproperties(C, (U=2 * C.U,))
             @test typeof(C_new) === typeof(C)
             for f in propertynames(C)
-                @test getproperty(C_new, f) == 2 .* getproperty(C, f)
+                @test getproperty(C_new, f) == 2 * getproperty(C, f)
             end
 
             # Update `UL`
-            C_new = ConstructionBase.setproperties(C, (UL=2 .* C.UL,))
+            C_new = ConstructionBase.setproperties(C, (UL=2 * C.UL,))
             @test typeof(C_new) === typeof(C)
             for f in propertynames(C)
-                @test getproperty(C_new, f) == 2 .* getproperty(C, f)
+                @test getproperty(C_new, f) == 2 * getproperty(C, f)
             end
 
             # We can only set the properties with `LowerTriangular` or `UpperTriangular` matrices.
