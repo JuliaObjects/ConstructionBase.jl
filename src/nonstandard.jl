@@ -59,13 +59,16 @@ constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
 
 ### Cholesky
 setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{()}) = C
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:L,)})
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:L,),Tuple{L}}) where {L<:LinearAlgebra.LowerTriangular}
     return LinearAlgebra.Cholesky(parent(C.uplo === 'U' ? permutedims(patch.L) : patch.L), C.uplo, C.info)
 end
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:U,)})
+function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:U,),Tuple{U}}) where {U<:LinearAlgebra.UpperTriangular}
     return LinearAlgebra.Cholesky(parent(C.uplo === 'L' ? permutedims(patch.U) : patch.U), C.uplo, C.info)
 end
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:UL,)})
+function setproperties(
+    C::LinearAlgebra.Cholesky,
+    patch::NamedTuple{(:UL,),Tuple{UL}}
+) where {UL<:Union{LinearAlgebra.LowerTriangular,LinearAlgebra.UpperTriangular}}
     return LinearAlgebra.Cholesky(parent(patch.UL), C.uplo, C.info)
 end
 function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
