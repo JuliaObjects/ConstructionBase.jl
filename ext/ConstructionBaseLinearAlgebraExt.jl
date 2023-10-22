@@ -1,11 +1,19 @@
-using LinearAlgebra
+module ConstructionBaseLinearAlgebraExt
+
+if isdefined(Base, :get_extension)
+    using ConstructionBase
+    using LinearAlgebra: LinearAlgebra, SubArray, LinRange, Cholesky, LowerTriangular, UpperTriangular, Tridiagonal
+else
+    using ..ConstructionBase
+    using ..LinearAlgebra: LinearAlgebra, SubArray, LinRange, Cholesky, LowerTriangular, UpperTriangular, Tridiagonal
+end
 
 ### SubArray
 # `offset1` and `stride1` fields are calculated from parent indices.
 # Setting them has no effect.
 subarray_constructor(parent, indices, args...) = SubArray(parent, indices)
 
-constructorof(::Type{<:SubArray}) = subarray_constructor
+ConstructionBase.constructorof(::Type{<:SubArray}) = subarray_constructor
 
 ### ReinterpretArray
 struct ReinterpretArrayConstructor{T} end
@@ -15,7 +23,7 @@ function (::ReinterpretArrayConstructor{T})(parent, args...) where T
     reinterpret(T, parent)
 end
 
-constructorof(::Type{<:Base.ReinterpretArray{T}}) where T = ReinterpretArrayConstructor{T}()
+ConstructionBase.constructorof(::Type{<:Base.ReinterpretArray{T}}) where T = ReinterpretArrayConstructor{T}()
 
 ### PermutedDimsArray
 struct PermutedDimsArrayConstructor{N,perm,iperm} end
@@ -25,7 +33,7 @@ function (::PermutedDimsArrayConstructor{N,perm,iperm})(parent::AA
     PermutedDimsArray{T,N,perm,iperm,AA}(parent)
 end
 
-constructorof(::Type{<:PermutedDimsArray{<:Any,N,perm,iperm,<:Any}}) where {N,perm,iperm} =
+ConstructionBase.constructorof(::Type{<:PermutedDimsArray{<:Any,N,perm,iperm,<:Any}}) where {N,perm,iperm} =
     PermutedDimsArrayConstructor{N,perm,iperm}()
 
 ### Tridiagonal
@@ -37,7 +45,7 @@ function tridiagonal_constructor(dl::V, d::V, du::V, du2::V) where {V<:AbstractV
 end
 
 # `du2` may be undefined, so we need a custom `getfields` that checks `isdefined`
-function getfields(o::Tridiagonal)
+function ConstructionBase.getfields(o::Tridiagonal)
     if isdefined(o, :du2)
         (dl=o.dl, d=o.d, du=o.du, du2=o.du2) 
     else
@@ -45,32 +53,35 @@ function getfields(o::Tridiagonal)
     end
 end
 
-constructorof(::Type{<:LinearAlgebra.Tridiagonal}) = tridiagonal_constructor
+ConstructionBase.constructorof(::Type{<:Tridiagonal}) = tridiagonal_constructor
 
 ### LinRange
 # `lendiv` is a calculated field
 linrange_constructor(start, stop, len, lendiv) = LinRange(start, stop, len)
 
-constructorof(::Type{<:LinRange}) = linrange_constructor
+ConstructionBase.constructorof(::Type{<:LinRange}) = linrange_constructor
 
 ### Expr: args get splatted
 # ::Expr annotation is to make it type-stable on Julia 1.3-
-constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
+ConstructionBase.constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
 
 ### Cholesky
-setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{()}) = C
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:L,),<:Tuple{<:LinearAlgebra.LowerTriangular}})
-    return LinearAlgebra.Cholesky(C.uplo === 'U' ? copy(patch.L.data') : patch.L.data, C.uplo, C.info)
+ConstructionBase.setproperties(C::Cholesky, patch::NamedTuple{()}) = C
+function ConstructionBase.setproperties(C::Cholesky, patch::NamedTuple{(:L,),<:Tuple{<:LowerTriangular}})
+    return Cholesky(C.uplo === 'U' ? copy(patch.L.data') : patch.L.data, C.uplo, C.info)
 end
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple{(:U,),<:Tuple{<:LinearAlgebra.UpperTriangular}})
-    return LinearAlgebra.Cholesky(C.uplo === 'L' ? copy(patch.U.data') : patch.U.data, C.uplo, C.info)
+function ConstructionBase.setproperties(C::Cholesky, patch::NamedTuple{(:U,),<:Tuple{<:UpperTriangular}})
+    return Cholesky(C.uplo === 'L' ? copy(patch.U.data') : patch.U.data, C.uplo, C.info)
 end
-function setproperties(
-    C::LinearAlgebra.Cholesky,
-    patch::NamedTuple{(:UL,),<:Tuple{<:Union{LinearAlgebra.LowerTriangular,LinearAlgebra.UpperTriangular}}}
+function ConstructionBase.setproperties(
+    C::Cholesky,
+    patch::NamedTuple{(:UL,),<:Tuple{<:Union{LowerTriangular,UpperTriangular}}}
 )
-    return LinearAlgebra.Cholesky(patch.UL.data, C.uplo, C.info)
+    return Cholesky(patch.UL.data, C.uplo, C.info)
 end
-function setproperties(C::LinearAlgebra.Cholesky, patch::NamedTuple)
+function ConstructionBase.setproperties(C::Cholesky, patch::NamedTuple)
     throw(ArgumentError("Invalid patch for `Cholesky`: $(patch)"))
+end
+
+
 end
