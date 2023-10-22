@@ -1,7 +1,12 @@
 module ConstructionBaseStaticArraysExt
 
-using ConstructionBase
-using StaticArrays
+if isdefined(Base, :get_extension)
+    using ConstructionBase
+    using StaticArrays
+else
+    using ..ConstructionBase
+    using ..StaticArrays
+end
 
 # general static arrays need to keep the size parameter
 ConstructionBase.constructorof(sa::Type{<:SArray{S}}) where {S} = SArray{S}

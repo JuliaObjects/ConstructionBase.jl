@@ -217,7 +217,18 @@ function setproperties_object(obj, patch)
     constructorof(typeof(obj))(args...)
 end
 
-include("nonstandard.jl")
 include("functions.jl")
+
+if !isdefined(Base, :get_extension)
+    using Requires: @require
+end
+function __init__()
+    @static if !isdefined(Base, :get_extension)
+        @require IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953" include("../ext/ConstructionBaseIntervalSetsExt.jl")
+        @require LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e" include("../ext/ConstructionBaseLinearAlgebraExt.jl")
+        @require StaticArrays = "90137ffa-7385-5640-81b9-e52037218182" include("../ext/ConstructionBaseStaticArraysExt.jl")
+    end
+end
+
 
 end # module
