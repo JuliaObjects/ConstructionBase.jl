@@ -50,7 +50,8 @@ getproperties(o::Tuple) = o
 
 if VERSION >= v"1.7"
     function check_properties_are_fields(obj)
-        # triple equals makes it easier for the compiler to optimize, see #82
+        # for ntuples of symbols `===` is semantically the same as `==`
+        # but triple equals is easier for the compiler to optimize, see #82
         if propertynames(obj) !== fieldnames(typeof(obj))
             error("""
             The function `Base.propertynames` was overloaded for type `$(typeof(obj))`.
