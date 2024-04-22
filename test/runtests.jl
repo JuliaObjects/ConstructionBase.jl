@@ -21,9 +21,7 @@ end
 
 @testset "getfields" begin
     @test getfields(()) === ()
-    if isempty(fieldnames(Vector{Any}))
-        @test getfields([]) === NamedTuple()
-    end
+    @test keys(getfields([])) == fieldnames(typeof([])))
     @test getfields(Empty()) === NamedTuple()
     @test getfields(NamedTuple()) === NamedTuple()
     @test getfields((10,20,30)) === (10,20,30)
