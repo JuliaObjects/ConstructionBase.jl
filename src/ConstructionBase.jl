@@ -102,11 +102,11 @@ tuple_or_ntuple(::Type, names, vals) = error("Only Int and Symbol propertynames 
 if VERSION >= v"1.7"
     function getproperties(obj)
         fnames = propertynames(obj)
-        tuple_or_ntuple(fnames, getproperty.(Ref(obj), fnames))
+        tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
     end
     function getfields(obj::T) where {T}
         fnames = fieldnames(T)
-        NamedTuple{fnames}(getfield.(Ref(obj), fnames))
+        NamedTuple{fnames}(getfield.((obj,), fnames))
     end
 else
     @generated function getfields(obj)
