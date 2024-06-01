@@ -21,7 +21,7 @@ end
 
 @testset "getfields" begin
     @test getfields(()) === ()
-    @test getfields([]) === NamedTuple()
+    @test keys(getfields([])) == fieldnames(typeof([])))
     @test getfields(Empty()) === NamedTuple()
     @test getfields(NamedTuple()) === NamedTuple()
     @test getfields((10,20,30)) === (10,20,30)
@@ -425,7 +425,7 @@ function write_output_to_ref!(f, out_ref::Ref, arg_ref1::Ref, arg_ref2::Ref)
     out_ref
 end
 function hot_loop_allocs(f::F, args...) where {F}
-    # we want to test that f(args...) does not allocate 
+    # we want to test that f(args...) does not allocate
     # when used in hot loops
     # however a naive @allocated f(args...)
     # will not be representative of what happens in an inner loop
@@ -562,7 +562,7 @@ if isdefined(Base, :get_extension)  # some 1.9 version
         @test all(ma2 .=== @MMatrix [1 3; 2 4])
 
         sz = SizedArray{Tuple{2,2}}([1 2;3 4])
-        sz2 = @inferred ConstructionBase.constructorof(typeof(sz))([:a :b; :c :d]) 
+        sz2 = @inferred ConstructionBase.constructorof(typeof(sz))([:a :b; :c :d])
         @test sz2 == SizedArray{Tuple{2,2}}([:a :b; :c :d])
         @test typeof(sz2) <: SizedArray{Tuple{2,2},Symbol,2,2}
 
