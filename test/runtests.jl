@@ -21,7 +21,15 @@ end
 
 @testset "getfields" begin
     @test getfields(()) === ()
-    @test getfields([]) === NamedTuple()
+
+    #on julia 1.10 onwards, Array has fields :ref and :size. the :ref field is a memory field
+    #with non-constant value (the pointer location in memory). The only constant field in []
+    #is it's size, (0,)
+    if !isdefined(Base,:Memory)
+        @test getfields([]) === NamedTuple()
+    else
+        @test getfields([]).size === (0,)
+    end
     @test getfields(Empty()) === NamedTuple()
     @test getfields(NamedTuple()) === NamedTuple()
     @test getfields((10,20,30)) === (10,20,30)
