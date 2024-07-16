@@ -41,5 +41,5 @@ constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
 
 if !isdefined(Base,:get_extension)
     using LinearAlgebra
-    include("..ext/ConstructionBaseLinearAlgebraExt.jl")
+    include("../ext/ConstructionBaseLinearAlgebraExt.jl")
 end
