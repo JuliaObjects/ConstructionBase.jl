@@ -28,7 +28,8 @@ end
     if !isdefined(Base,:Memory)
         @test getfields([]) === NamedTuple()
     else
-        @test getfields([]).size === (0,)
+        arr = []
+        @test getfields(arr) === (;arr.ref, arr.size)
     end
     @test getfields(Empty()) === NamedTuple()
     @test getfields(NamedTuple()) === NamedTuple()
