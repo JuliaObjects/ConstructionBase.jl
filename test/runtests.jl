@@ -29,7 +29,7 @@ end
         @test getfields([]) === NamedTuple()
     else
         arr = []
-        @test getfields(arr) === (;arr.ref, arr.size)
+        @test getfields(arr) === (ref = arr.ref, size = arr.size)
     end
     @test getfields(Empty()) === NamedTuple()
     @test getfields(NamedTuple()) === NamedTuple()
