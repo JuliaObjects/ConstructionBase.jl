@@ -1,4 +1,3 @@
-using LinearAlgebra
 
 ### SubArray
 # `offset1` and `stride1` fields are calculated from parent indices.
@@ -41,5 +40,6 @@ constructorof(::Type{<:LinRange}) = linrange_constructor
 constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
 
 if !isdefined(Base,:get_extension)
+    using LinearAlgebra
     include("ext/ConstructionBaseLinearAlgebraExt.jl")
 end
