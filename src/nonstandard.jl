@@ -38,8 +38,3 @@ constructorof(::Type{<:LinRange}) = linrange_constructor
 ### Expr: args get splatted
 # ::Expr annotation is to make it type-stable on Julia 1.3-
 constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
-
-if !isdefined(Base,:get_extension)
-    using LinearAlgebra
-    include("../ext/ConstructionBaseLinearAlgebraExt.jl")
-end

@@ -1,12 +1,7 @@
 module ConstructionBaseLinearAlgebraExt
 
-if isdefined(Base, :get_extension)
-    import ConstructionBase
-    import LinearAlgebra
-else
-    import ..ConstructionBase
-    import ..LinearAlgebra
-end
+import ConstructionBase
+import LinearAlgebra
 
 ### Tridiagonal
 
