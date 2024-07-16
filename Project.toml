@@ -20,7 +20,7 @@ ConstructionBaseLinearAlgebraExt = "LinearAlgebra"
 IntervalSets = "0.5, 0.6, 0.7"
 StaticArrays = "1"
 julia = "1"
-LinearAlgebra = "1"
+LinearAlgebra = "<0.0.1,1"
 
 [extras]
 IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"

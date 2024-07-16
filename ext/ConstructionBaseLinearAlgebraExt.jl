@@ -1,6 +1,6 @@
 module ConstructionBaseLinearAlgebraExt
 
-if !isdefined(Base, :get_extension)
+if isdefined(Base, :get_extension)
     import ConstructionBase
     import LinearAlgebra
 else
