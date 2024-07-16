@@ -21,7 +21,7 @@ end
 
 @testset "getfields" begin
     @test getfields(()) === ()
-    @test keys(getfields([])) == fieldnames(typeof([])))
+    @test keys(getfields([])) == fieldnames(typeof([]))
     @test getfields(Empty()) === NamedTuple()
     @test getfields(NamedTuple()) === NamedTuple()
     @test getfields((10,20,30)) === (10,20,30)
