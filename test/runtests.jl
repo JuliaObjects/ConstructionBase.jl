@@ -246,7 +246,7 @@ end
     end
 end
 
-@testset "Anonymous function constructors" begin
+@testset "default function constructors" begin
     function multiplyer(a, b)
         x -> x * a * b
     end
@@ -259,6 +259,10 @@ end
     multbc = @inferred constructorof(typeof(mult23))("b", "c")
     @inferred multbc("a")
     @test multbc("a") == "abc"
+
+    @test (@inferred constructorof(typeof(sin))()) === sin
+    f = x -> x^2
+    @test (@inferred constructorof(typeof(f))()) === f
 end
 
 struct Adder{V} <: Function

@@ -6,6 +6,8 @@ struct FunctionConstructor{F} end
 _isgensym(s::Symbol) = occursin("#", string(s))
 
 @generated function (fc::FunctionConstructor{F})(args...) where F
+    isempty(args) && return Expr(:new, F)
+
     T = getfield(parentmodule(F), nameof(F))
     # We assume all gensym names are anonymous functions
     _isgensym(nameof(F)) || return :($T(args...))
