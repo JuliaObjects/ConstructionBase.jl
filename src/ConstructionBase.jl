@@ -47,11 +47,11 @@ getfields(x::Tuple) = x
 getfields(x::NamedTuple) = x
 @generated function getfields(obj)
     fnames = fieldnames(obj)
-    if eltype(fnames) === Int
-        :(getfield.((obj,), $fnames))
-    else
-        :(NamedTuple{$fnames}(getfield.((obj,), $fnames)))
+    tuple = Expr(:tuple)
+    for fname in fnames
+        push!(tuple.args, :(getfield(obj, $(QuoteNode(fname)))))
     end
+    eltype(fnames) === Int ? tuple : :(NamedTuple{$fnames}($tuple))
 end
 
 getproperties(o::NamedTuple) = o
@@ -157,17 +157,18 @@ function setproperties_namedtuple(obj, patch)
     check_patch_properties_exist(res, obj, obj, patch)
     res
 end
-function check_patch_fields_exist(obj, patch)
-    fnames = fieldnames(typeof(obj))
-    pnames = fieldnames(typeof(patch))
+@generated function check_patch_fields_exist(obj, patch)
+    fnames = fieldnames(obj)
+    pnames = fieldnames(patch)
     for pname in pnames
         if !in(pname, fnames)
             msg = """
             Failed to assign fields $pnames to object with fields $fnames.
             """
-            throw(ArgumentError(msg))
+            return :(throw(ArgumentError($msg)))
         end
     end
+    :(nothing)
 end
 function check_patch_properties_exist(
     nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
