@@ -72,7 +72,7 @@ if VERSION >= v"1.7"
     end
 else
     properties_are_fields(obj) = properties_are_fields(typeof(obj))
-    properties_are_fields(T::Type) = is_propertynames_overloaded(T)
+    properties_are_fields(T::Type) = !is_propertynames_overloaded(T)
 
     function is_propertynames_overloaded(T::Type)::Bool
         which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
