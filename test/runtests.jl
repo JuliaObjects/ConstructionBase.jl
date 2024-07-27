@@ -476,6 +476,17 @@ end
     end
 end
 
+struct S2
+    a::Union{Nothing, Int}
+    b::Union{UInt32, Int32}
+end
+
+@testset "no allocs S2" begin
+    obj = S2(3, UInt32(5))
+    @test 0 == hot_loop_allocs(constructorof, typeof(obj))
+    @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
+end
+
 @testset "inference" begin
     @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
         t = funny_numbers(Tuple,n)

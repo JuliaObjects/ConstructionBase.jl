@@ -45,14 +45,25 @@ end
 ################################################################################
 getfields(x::Tuple) = x
 getfields(x::NamedTuple) = x
+@generated function getfields(obj)
+    fnames = fieldnames(obj)
+    if eltype(fnames) === Int
+        :(getfield.((obj,), $fnames))
+    else
+        :(NamedTuple{$fnames}(getfield.((obj,), $fnames)))
+    end
+end
+
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
 if VERSION >= v"1.7"
+    properties_are_fields(obj) = propertynames(obj) === fieldnames(typeof(obj))
+
     function check_properties_are_fields(obj)
         # for ntuples of symbols `===` is semantically the same as `==`
         # but triple equals is easier for the compiler to optimize, see #82
-        if propertynames(obj) !== fieldnames(typeof(obj))
+        if !properties_are_fields(obj)
             error("""
             The function `Base.propertynames` was overloaded for type `$(typeof(obj))`.
             Please make sure `ConstructionBase.setproperties` is also overloaded for this type.
@@ -60,12 +71,15 @@ if VERSION >= v"1.7"
         end
     end
 else
+    properties_are_fields(obj) = properties_are_fields(typeof(obj))
+    properties_are_fields(T::Type) = is_propertynames_overloaded(T)
+
     function is_propertynames_overloaded(T::Type)::Bool
         which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
     end
 
     @generated function check_properties_are_fields(obj)
-        if is_propertynames_overloaded(obj)
+        if !properties_are_fields(obj)
             return quote
                 T = typeof(obj)
                 msg = """
@@ -101,21 +115,14 @@ tuple_or_ntuple(::Type, names, vals) = error("Only Int and Symbol propertynames 
 
 if VERSION >= v"1.7"
     function getproperties(obj)
-        fnames = propertynames(obj)
-        tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
-    end
-    function getfields(obj::T) where {T}
-        fnames = fieldnames(T)
-        NamedTuple{fnames}(getfield.((obj,), fnames))
+        if properties_are_fields(obj)
+            getfields(obj)
+        else
+            fnames = propertynames(obj)
+            tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
+        end
     end
 else
-    @generated function getfields(obj)
-        fnames = fieldnames(obj)
-        fvals = map(fnames) do fname
-             Expr(:call, :getfield, :obj, QuoteNode(fname))
-        end
-        :(NamedTuple{$fnames}(($(fvals...),)))
-    end
     function getproperties(obj)
         check_properties_are_fields(obj)
         getfields(obj)
@@ -150,12 +157,23 @@ function setproperties_namedtuple(obj, patch)
     check_patch_properties_exist(res, obj, obj, patch)
     res
 end
+function check_patch_fields_exist(obj, patch)
+    fnames = fieldnames(typeof(obj))
+    pnames = fieldnames(typeof(patch))
+    for pname in pnames
+        if !in(pname, fnames)
+            msg = """
+            Failed to assign fields $pnames to object with fields $fnames.
+            """
+            throw(ArgumentError(msg))
+        end
+    end
+end
 function check_patch_properties_exist(
     nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
     nothing
 end
 @noinline function check_patch_properties_exist(nt_new, nt_old, obj, patch)
-    O = typeof(obj)
     msg = """
     Failed to assign properties $(propertynames(patch)) to object with properties $(propertynames(obj)).
     """
@@ -210,13 +228,20 @@ setproperties_object(obj, patch::Tuple{}) = obj
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 
+@generated function setfields_object(obj, patch)
+    args = Expr[]
+    pnames = fieldnames(patch)
+    for fname in fieldnames(obj)
+        source = fname in pnames ? :patch : :obj
+        push!(args, :(getfield($source, $(QuoteNode(fname)))))
+    end
+    :(constructorof(typeof(obj))($(args...)))
+end
+
 function setproperties_object(obj, patch)
     check_properties_are_fields(obj)
-    nt = getproperties(obj)
-    nt_new = merge(nt, patch)
-    check_patch_properties_exist(nt_new, nt, obj, patch)
-    args = Tuple(nt_new) # old julia inference prefers if we wrap in Tuple
-    constructorof(typeof(obj))(args...)
+    check_patch_fields_exist(obj, patch)
+    setfields_object(obj, patch)
 end
 
 include("nonstandard.jl")
