@@ -234,7 +234,7 @@ setproperties_object(obj, patch::NamedTuple{()}) = obj
     pnames = fieldnames(patch)
     for fname in fieldnames(obj)
         source = fname in pnames ? :patch : :obj
-        push!(args, :(getfield($source, $(QuoteNode(fname)))))
+        push!(args, :(getproperty($source, $(QuoteNode(fname)))))
     end
     :(constructorof(typeof(obj))($(args...)))
 end

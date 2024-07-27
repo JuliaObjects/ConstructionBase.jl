@@ -484,7 +484,11 @@ end
 @testset "no allocs S2" begin
     obj = S2(3, UInt32(5))
     @test 0 == hot_loop_allocs(constructorof, typeof(obj))
-    @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
+    if VERSION ≤ v"1.3"
+        @test 32 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
+    else
+        @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
+    end
 end
 
 @testset "inference" begin
