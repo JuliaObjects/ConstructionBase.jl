@@ -239,7 +239,7 @@ setproperties_object(obj, patch::NamedTuple{()}) = obj
     :(constructorof(typeof(obj))($(args...)))
 end
 
-function setproperties_object(obj, patch)
+function setproperties_object(obj, patch::NamedTuple)
     check_properties_are_fields(obj)
     check_patch_fields_exist(obj, patch)
     setfields_object(obj, patch)
