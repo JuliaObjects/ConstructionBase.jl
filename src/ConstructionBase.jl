@@ -73,6 +73,7 @@ else
     properties_are_fields(obj) = is_propertynames_overloaded(typeof(obj))
 
     function is_propertynames_overloaded(T::Type)::Bool
+        T <: NamedTuple && return false
         which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
     end
 
