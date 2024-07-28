@@ -136,25 +136,9 @@ end
 
 setproperties(obj             , patch::Tuple      ) = setproperties_object(obj     , patch )
 setproperties(obj             , patch::NamedTuple ) = setproperties_object(obj     , patch )
-setproperties(obj::NamedTuple , patch::Tuple      ) = setproperties_namedtuple(obj , patch )
-setproperties(obj::NamedTuple , patch::NamedTuple ) = setproperties_namedtuple(obj , patch )
 setproperties(obj::Tuple      , patch::Tuple      ) = setproperties_tuple(obj      , patch )
 setproperties(obj::Tuple      , patch::NamedTuple ) = setproperties_tuple(obj      , patch )
 
-setproperties_namedtuple(obj, patch::Tuple{}) = obj
-@noinline function setproperties_namedtuple(obj, patch::Tuple)
-    msg = """
-    setproperties(obj::NamedTuple, patch::Tuple) only allowed for empty Tuple. Got:
-    obj = $obj
-    patch = $patch
-    """
-    throw(ArgumentError(msg))
-end
-function setproperties_namedtuple(obj, patch)
-    res = merge(obj, patch)
-    check_patch_properties_exist(res, obj, obj, patch)
-    res
-end
 @generated function check_patch_fields_exist(obj, patch)
     fnames = fieldnames(obj)
     pnames = fieldnames(patch)
@@ -168,17 +152,8 @@ end
     end
     :(nothing)
 end
-function check_patch_properties_exist(
-    nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
-    nothing
-end
-@noinline function check_patch_properties_exist(nt_new, nt_old, obj, patch)
-    msg = """
-    Failed to assign properties $(propertynames(patch)) to object with properties $(propertynames(obj)).
-    """
-    throw(ArgumentError(msg))
-end
-function setproperties_namedtuple(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
+
+function setproperties(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
     patch
 end
 
