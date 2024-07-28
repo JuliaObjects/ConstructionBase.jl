@@ -202,7 +202,7 @@ setproperties_object(obj, patch::Tuple{}) = obj
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 
-@generated function setfields_object(obj, patch)
+@generated function setfields_object(obj, patch::NamedTuple)
     args = Expr[]
     pnames = fieldnames(patch)
     for fname in fieldnames(obj)
