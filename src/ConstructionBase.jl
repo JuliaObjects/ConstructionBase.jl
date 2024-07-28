@@ -47,11 +47,10 @@ getfields(x::Tuple) = x
 getfields(x::NamedTuple) = x
 @generated function getfields(obj)
     fnames = fieldnames(obj)
-    tuple = Expr(:tuple)
-    for fname in fnames
-        push!(tuple.args, :(getfield(obj, $(QuoteNode(fname)))))
+    fvals = map(fnames) do fname
+        Expr(:call, :getfield, :obj, QuoteNode(fname))
     end
-    eltype(fnames) === Int ? tuple : :(NamedTuple{$fnames}($tuple))
+    :(NamedTuple{$fnames}(($(fvals...),)))
 end
 
 getproperties(o::NamedTuple) = o
