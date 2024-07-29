@@ -60,8 +60,6 @@ if VERSION >= v"1.7"
     properties_are_fields(obj) = propertynames(obj) === fieldnames(typeof(obj))
 
     function check_properties_are_fields(obj)
-        # for ntuples of symbols `===` is semantically the same as `==`
-        # but triple equals is easier for the compiler to optimize, see #82
         if !properties_are_fields(obj)
             error("""
             The function `Base.propertynames` was overloaded for type `$(typeof(obj))`.
