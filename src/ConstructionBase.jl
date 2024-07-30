@@ -45,22 +45,14 @@ end
 ################################################################################
 getfields(x::Tuple) = x
 getfields(x::NamedTuple) = x
-@generated function getfields(obj)
-    fnames = fieldnames(obj)
-    fvals = map(fnames) do fname
-        Expr(:call, :getfield, :obj, QuoteNode(fname))
-    end
-    :(NamedTuple{$fnames}(($(fvals...),)))
-end
-
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
 if VERSION >= v"1.7"
-    properties_are_fields(obj) = propertynames(obj) === fieldnames(typeof(obj))
-
     function check_properties_are_fields(obj)
-        if !properties_are_fields(obj)
+        # for ntuples of symbols `===` is semantically the same as `==`
+        # but triple equals is easier for the compiler to optimize, see #82
+        if propertynames(obj) !== fieldnames(typeof(obj))
             error("""
             The function `Base.propertynames` was overloaded for type `$(typeof(obj))`.
             Please make sure `ConstructionBase.setproperties` is also overloaded for this type.
@@ -68,8 +60,6 @@ if VERSION >= v"1.7"
         end
     end
 else
-    properties_are_fields(obj) = is_propertynames_overloaded(typeof(obj))
-
     function is_propertynames_overloaded(T::Type)::Bool
         T <: NamedTuple && return false
         which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
@@ -112,14 +102,21 @@ tuple_or_ntuple(::Type, names, vals) = error("Only Int and Symbol propertynames 
 
 if VERSION >= v"1.7"
     function getproperties(obj)
-        if properties_are_fields(obj)
-            getfields(obj)
-        else
-            fnames = propertynames(obj)
-            tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
-        end
+        fnames = propertynames(obj)
+        tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
+    end
+    function getfields(obj::T) where {T}
+        fnames = fieldnames(T)
+        NamedTuple{fnames}(getfield.((obj,), fnames))
     end
 else
+    @generated function getfields(obj)
+        fnames = fieldnames(obj)
+        fvals = map(fnames) do fname
+             Expr(:call, :getfield, :obj, QuoteNode(fname))
+        end
+        :(NamedTuple{$fnames}(($(fvals...),)))
+    end
     function getproperties(obj)
         check_properties_are_fields(obj)
         getfields(obj)
