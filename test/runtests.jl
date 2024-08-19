@@ -21,16 +21,7 @@ end
 
 @testset "getfields" begin
     @test getfields(()) === ()
-
-    #on julia 1.10 onwards, Array has fields :ref and :size. the :ref field is a memory field
-    #with non-constant value (the pointer location in memory). The only constant field in []
-    #is it's size, (0,)
-    if !isdefined(Base,:Memory)
-        @test getfields([]) === NamedTuple()
-    else
-        arr = []
-        @test getfields(arr) === (ref = arr.ref, size = arr.size)
-    end
+    @test keys(getfields([])) == fieldnames(typeof([]))
     @test getfields(Empty()) === NamedTuple()
     @test getfields(NamedTuple()) === NamedTuple()
     @test getfields((10,20,30)) === (10,20,30)
@@ -255,7 +246,7 @@ end
     end
 end
 
-@testset "Anonymous function constructors" begin
+@testset "default function constructors" begin
     function multiplyer(a, b)
         x -> x * a * b
     end
@@ -268,6 +259,10 @@ end
     multbc = @inferred constructorof(typeof(mult23))("b", "c")
     @inferred multbc("a")
     @test multbc("a") == "abc"
+
+    @test (@inferred constructorof(typeof(sin))()) === sin
+    f = x -> x^2
+    @test (@inferred constructorof(typeof(f))()) === f
 end
 
 struct Adder{V} <: Function
@@ -434,7 +429,7 @@ function write_output_to_ref!(f, out_ref::Ref, arg_ref1::Ref, arg_ref2::Ref)
     out_ref
 end
 function hot_loop_allocs(f::F, args...) where {F}
-    # we want to test that f(args...) does not allocate 
+    # we want to test that f(args...) does not allocate
     # when used in hot loops
     # however a naive @allocated f(args...)
     # will not be representative of what happens in an inner loop
@@ -478,6 +473,21 @@ end
             end
             @test 0 == hot_loop_allocs(setproperties, obj, patch)
         end
+    end
+end
+
+struct S2
+    a::Union{Nothing, Int}
+    b::Union{UInt32, Int32}
+end
+
+@testset "no allocs S2" begin
+    obj = S2(3, UInt32(5))
+    @test 0 == hot_loop_allocs(constructorof, typeof(obj))
+    if VERSION < v"1.6"
+        @test 32 ≥ hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
+    else
+        @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
     end
 end
 
@@ -571,7 +581,7 @@ if isdefined(Base, :get_extension)  # some 1.9 version
         @test all(ma2 .=== @MMatrix [1 3; 2 4])
 
         sz = SizedArray{Tuple{2,2}}([1 2;3 4])
-        sz2 = @inferred ConstructionBase.constructorof(typeof(sz))([:a :b; :c :d]) 
+        sz2 = @inferred ConstructionBase.constructorof(typeof(sz))([:a :b; :c :d])
         @test sz2 == SizedArray{Tuple{2,2}}([:a :b; :c :d])
         @test typeof(sz2) <: SizedArray{Tuple{2,2},Symbol,2,2}
 
