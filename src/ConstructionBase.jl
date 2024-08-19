@@ -61,6 +61,7 @@ if VERSION >= v"1.7"
     end
 else
     function is_propertynames_overloaded(T::Type)::Bool
+        T <: NamedTuple && return false
         which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
     end
 
@@ -95,7 +96,9 @@ end
     Tuple(vals)
 end
 # names are symbols: return namedtuple
+@inline tuple_or_ntuple(::Type{Symbol}, names, vals::Tuple) = namedtuple(names, vals...)
 @inline tuple_or_ntuple(::Type{Symbol}, names, vals) = NamedTuple{Tuple(names)}(vals)
+@inline namedtuple(names, vals...) = NamedTuple{Tuple(names)}((vals...,)) # this seemingly unnecessary method encourages union splitting.
 # otherwise: throw an error
 tuple_or_ntuple(::Type, names, vals) = error("Only Int and Symbol propertynames are supported")
 
@@ -131,37 +134,16 @@ end
 
 setproperties(obj             , patch::Tuple      ) = setproperties_object(obj     , patch )
 setproperties(obj             , patch::NamedTuple ) = setproperties_object(obj     , patch )
-setproperties(obj::NamedTuple , patch::Tuple      ) = setproperties_namedtuple(obj , patch )
-setproperties(obj::NamedTuple , patch::NamedTuple ) = setproperties_namedtuple(obj , patch )
 setproperties(obj::Tuple      , patch::Tuple      ) = setproperties_tuple(obj      , patch )
 setproperties(obj::Tuple      , patch::NamedTuple ) = setproperties_tuple(obj      , patch )
 
-setproperties_namedtuple(obj, patch::Tuple{}) = obj
-@noinline function setproperties_namedtuple(obj, patch::Tuple)
-    msg = """
-    setproperties(obj::NamedTuple, patch::Tuple) only allowed for empty Tuple. Got:
-    obj = $obj
-    patch = $patch
-    """
-    throw(ArgumentError(msg))
+@generated function check_patch_fields_exist(obj, patch)
+    fnames = fieldnames(obj)
+    pnames = fieldnames(patch)
+    pnames ⊆ fnames ? :(nothing) : :(throw(ArgumentError($("Failed to assign fields $pnames to object with fields $fnames."))))
 end
-function setproperties_namedtuple(obj, patch)
-    res = merge(obj, patch)
-    check_patch_properties_exist(res, obj, obj, patch)
-    res
-end
-function check_patch_properties_exist(
-    nt_new::NamedTuple{fields}, nt_old::NamedTuple{fields}, obj, patch) where {fields}
-    nothing
-end
-@noinline function check_patch_properties_exist(nt_new, nt_old, obj, patch)
-    O = typeof(obj)
-    msg = """
-    Failed to assign properties $(propertynames(patch)) to object with properties $(propertynames(obj)).
-    """
-    throw(ArgumentError(msg))
-end
-function setproperties_namedtuple(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
+
+function setproperties(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
     patch
 end
 
@@ -210,13 +192,20 @@ setproperties_object(obj, patch::Tuple{}) = obj
 end
 setproperties_object(obj, patch::NamedTuple{()}) = obj
 
-function setproperties_object(obj, patch)
+@generated function setfields_object(obj, patch::NamedTuple)
+    args = Expr[]
+    pnames = fieldnames(patch)
+    for fname in fieldnames(obj)
+        source = fname in pnames ? :patch : :obj
+        push!(args, :(getproperty($source, $(QuoteNode(fname)))))
+    end
+    :(constructorof(typeof(obj))($(args...)))
+end
+
+function setproperties_object(obj, patch::NamedTuple)
     check_properties_are_fields(obj)
-    nt = getproperties(obj)
-    nt_new = merge(nt, patch)
-    check_patch_properties_exist(nt_new, nt, obj, patch)
-    args = Tuple(nt_new) # old julia inference prefers if we wrap in Tuple
-    constructorof(typeof(obj))(args...)
+    check_patch_fields_exist(obj, patch)
+    setfields_object(obj, patch)
 end
 
 include("nonstandard.jl")
