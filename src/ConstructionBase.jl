@@ -55,7 +55,7 @@ if VERSION >= v"1.7"
         if propertynames(obj) !== fieldnames(typeof(obj))
             error("""
             The `$(nameof(typeof(obj)))` type defines custom properties: it has `propertynames` overloaded.
-            Please define `ConstructionBase.setproperties(::`$(nameof(typeof(obj)))`, ::NamedTuple)` to set its properties.
+            Please define `ConstructionBase.setproperties(::$(nameof(typeof(obj))), ::NamedTuple)` to set its properties.
             """)
         end
     end
