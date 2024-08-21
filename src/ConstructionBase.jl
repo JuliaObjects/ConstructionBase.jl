@@ -211,4 +211,7 @@ end
 include("nonstandard.jl")
 include("functions.jl")
 
+#unconditionally include the extension for now
+include("../ext/ConstructionBaseLinearAlgebraExt.jl")
+
 end # module
