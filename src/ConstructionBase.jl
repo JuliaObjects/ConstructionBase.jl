@@ -54,8 +54,8 @@ if VERSION >= v"1.7"
         # but triple equals is easier for the compiler to optimize, see #82
         if propertynames(obj) !== fieldnames(typeof(obj))
             error("""
-            The function `Base.propertynames` was overloaded for type `$(typeof(obj))`.
-            Please make sure `ConstructionBase.setproperties` is also overloaded for this type.
+            The `$(nameof(typeof(obj)))` type defines custom properties: it has `propertynames` overloaded.
+            Please define `ConstructionBase.setproperties(::$(nameof(typeof(obj))), ::NamedTuple)` to set its properties.
             """)
         end
     end
