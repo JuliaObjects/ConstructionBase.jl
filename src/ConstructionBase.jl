@@ -211,7 +211,8 @@ end
 include("nonstandard.jl")
 include("functions.jl")
 
-#unconditionally include the extension for now
-include("../ext/ConstructionBaseLinearAlgebraExt.jl")
+if !isdefined(Base, :get_extension)
+    include("../ext/ConstructionBaseLinearAlgebraExt.jl")
+end
 
 end # module
