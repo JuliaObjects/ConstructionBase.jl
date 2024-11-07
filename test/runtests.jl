@@ -17,6 +17,7 @@ end
     @test constructorof(NamedTuple{(:a, :b)})(1.0, 2) === (a=1.0, b=2)
     @test constructorof(Tuple)(1.0, 2) === (1.0, 2)
     @test constructorof(Tuple{Nothing, Missing})(1.0, 2) === (1.0, 2)
+    @test_throws ArgumentError constructorof(Union{Bool, Int})
 end
 
 @testset "getfields" begin

@@ -27,6 +27,9 @@ for (name, path) in [
 end
 
 @generated function constructorof(::Type{T}) where T
+    if T isa Union
+        throw(ArgumentError("`Union` not supported by the fallback method"))
+    end
     getfield(parentmodule(T), nameof(T))
 end
 
