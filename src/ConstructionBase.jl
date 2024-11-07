@@ -26,7 +26,7 @@ for (name, path) in [
     end
 end
 
-@generated function constructorof(::Type{T}) where T
+function constructorof(::Type{T}) where T
     getfield(parentmodule(T), nameof(T))
 end
 
