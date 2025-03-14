@@ -26,10 +26,7 @@ for (name, path) in [
     end
 end
 
-@generated function constructorof(::Type{T}) where T
-    getfield(parentmodule(T), nameof(T))
-end
-
+constructorof(T::Type) where {T} = nameof(T).wrapper
 constructorof(::Type{<:Tuple}) = tuple
 constructorof(::Type{<:NamedTuple{names}}) where names =
     NamedTupleConstructor{names}()
