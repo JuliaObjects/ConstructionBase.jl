@@ -26,7 +26,7 @@ for (name, path) in [
     end
 end
 
-constructorof(T::Type) = typename(T).wrapper
+constructorof(T::Type) = Base.typename(T).wrapper
 constructorof(::Type{<:Tuple}) = tuple
 constructorof(::Type{<:NamedTuple{names}}) where names =
     NamedTupleConstructor{names}()
