@@ -26,7 +26,7 @@ for (name, path) in [
     end
 end
 
-constructorof(T::Type) where {T} = nameof(T).wrapper
+constructorof(T::Type) = nameof(T).wrapper
 constructorof(::Type{<:Tuple}) = tuple
 constructorof(::Type{<:NamedTuple{names}}) where names =
     NamedTupleConstructor{names}()
