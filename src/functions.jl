@@ -19,6 +19,6 @@ _isgensym(s::Symbol) = occursin("#", string(s))
 end
 
 function ConstructionBase.constructorof(f::Type{F}) where F <: Function
-    FunctionConstructor{typename(F).wrapper}()
+    FunctionConstructor{Base.typename(F).wrapper}()
 end
 
