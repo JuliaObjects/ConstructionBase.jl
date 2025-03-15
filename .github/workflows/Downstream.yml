@@ -24,16 +24,12 @@ jobs:
           version: ${{ matrix.julia-version }}
           arch: x64
       - uses: julia-actions/julia-buildpkg@latest
-      - name: Clone Downstream
-        uses: actions/checkout@v2
-        with:
-          repository: ${{ matrix.package.repo }}
-          path: downstream
       - name: Install downstream and run its tests
-        shell: julia --color=yes --project=downstream {0}
+        shell: julia --color=yes {0}
         run: |
           using Pkg
           try
+            Pkg.activate("downstream")
             # force it to use this PR's version of the package
             Pkg.develop(PackageSpec(path="."))  # resolver may fail with main deps
             Pkg.add("${{ matrix.package }}")
