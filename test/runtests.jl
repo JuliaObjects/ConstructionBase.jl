@@ -341,15 +341,7 @@ Base.getproperty(obj::FieldProps, name::Symbol) = getproperty(getfield(obj, :com
     @test occursin("setproperties", msg)
     @test occursin("FieldProps", msg)
  # == FieldProps((a="aaa", b=:b)
-    if VERSION >= v"1.7"
-        @test getproperties(x) == (a=1, b=:b)
-    else
-        res = @test_throws ErrorException getproperties(x)
-        msg = sprint(showerror, res.value)
-        @test occursin("overload", msg)
-        @test occursin("getproperties", msg)
-        @test occursin("FieldProps", msg)
-    end
+    @test getproperties(x) == (a=1, b=:b)
 end
 
 
@@ -361,24 +353,22 @@ Base.getproperty(s::SProp, prop::Symbol) = "ps$prop"
 Base.getproperty(s::SProp, prop::Int) = "pi$prop"
 Base.getproperty(s::SProp, prop::String) = "pstr$prop"
 
-if VERSION >= v"1.7"
-    # automatic getproperties() supported only on 1.7+
+# automatic getproperties() supported only on 1.7+
 
-    @testset "properties can be numbered" begin
-        @test getproperties(SProp((:a, :b))) === (a="psa", b="psb")
-        @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
-        # what should it return?
-        @test_broken getproperties(SProp(("a", "b")))
+@testset "properties can be numbered" begin
+    @test getproperties(SProp((:a, :b))) === (a="psa", b="psb")
+    @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
+    # what should it return?
+    @test_broken getproperties(SProp(("a", "b")))
 
-        @test_throws ErrorException getproperties(SProp((1, :a)))
-    end
+    @test_throws ErrorException getproperties(SProp((1, :a)))
+end
 
-    @testset "propertynames can be a vector" begin
-        @test getproperties(SProp([:a, :b])) === (a="psa", b="psb")
-        @test getproperties(SProp(Symbol[])) === (;)
-        @test getproperties(SProp([1, 2])) === ("pi1", "pi2")
-        @test getproperties(SProp(Int[])) === ()
-    end
+@testset "propertynames can be a vector" begin
+    @test getproperties(SProp([:a, :b])) === (a="psa", b="psb")
+    @test getproperties(SProp(Symbol[])) === (;)
+    @test getproperties(SProp([1, 2])) === ("pi1", "pi2")
+    @test getproperties(SProp(Int[])) === ()
 end
 
 function funny_numbers(::Type{Tuple}, n)::Tuple
@@ -484,11 +474,7 @@ end
 @testset "no allocs S2" begin
     obj = S2(3, UInt32(5))
     @test 0 == hot_loop_allocs(constructorof, typeof(obj))
-    if VERSION < v"1.6"
-        @test 32 ≥ hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
-    else
-        @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
-    end
+    @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
 end
 
 @testset "inference" begin
@@ -524,10 +510,8 @@ end
         @inferred getfields(nt)
 
         @inferred constructorof(typeof(nt))
-        if VERSION >= v"1.3"
-            content = funny_numbers(NamedTuple,n)
-            @inferred reconstruct(nt, content)
-        end
+        content = funny_numbers(NamedTuple,n)
+        @inferred reconstruct(nt, content)
         #no_allocs_test(nt, content)
         for k in 0:n
             nt2 = funny_numbers(NamedTuple, k)
@@ -549,12 +533,10 @@ end
     @inferred constructorof(S1)
     @inferred constructorof(S20)
     @inferred constructorof(S40)
-    if VERSION >= v"1.3"
-        @inferred reconstruct(funny_numbers(S,0) , funny_numbers(Tuple,0))
-        @inferred reconstruct(funny_numbers(S,1) , funny_numbers(Tuple,1))
-        @inferred reconstruct(funny_numbers(S,20), funny_numbers(Tuple,20))
-        @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
-    end
+    @inferred reconstruct(funny_numbers(S,0) , funny_numbers(Tuple,0))
+    @inferred reconstruct(funny_numbers(S,1) , funny_numbers(Tuple,1))
+    @inferred reconstruct(funny_numbers(S,20), funny_numbers(Tuple,20))
+    @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
 
     @inferred getfields(funny_numbers(S,0))
     @inferred getfields(funny_numbers(S,1))
