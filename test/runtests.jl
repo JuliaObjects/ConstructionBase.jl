@@ -341,15 +341,7 @@ Base.getproperty(obj::FieldProps, name::Symbol) = getproperty(getfield(obj, :com
     @test occursin("setproperties", msg)
     @test occursin("FieldProps", msg)
  # == FieldProps((a="aaa", b=:b)
-    if VERSION >= v"1.7"
-        @test getproperties(x) == (a=1, b=:b)
-    else
-        res = @test_throws ErrorException getproperties(x)
-        msg = sprint(showerror, res.value)
-        @test occursin("overload", msg)
-        @test occursin("getproperties", msg)
-        @test occursin("FieldProps", msg)
-    end
+    @test getproperties(x) == (a=1, b=:b)
 end
 
 
@@ -361,24 +353,20 @@ Base.getproperty(s::SProp, prop::Symbol) = "ps$prop"
 Base.getproperty(s::SProp, prop::Int) = "pi$prop"
 Base.getproperty(s::SProp, prop::String) = "pstr$prop"
 
-if VERSION >= v"1.7"
-    # automatic getproperties() supported only on 1.7+
+@testset "properties can be numbered" begin
+    @test getproperties(SProp((:a, :b))) === (a="psa", b="psb")
+    @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
+    # what should it return?
+    @test_broken getproperties(SProp(("a", "b")))
 
-    @testset "properties can be numbered" begin
-        @test getproperties(SProp((:a, :b))) === (a="psa", b="psb")
-        @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
-        # what should it return?
-        @test_broken getproperties(SProp(("a", "b")))
+    @test_throws ErrorException getproperties(SProp((1, :a)))
+end
 
-        @test_throws ErrorException getproperties(SProp((1, :a)))
-    end
-
-    @testset "propertynames can be a vector" begin
-        @test getproperties(SProp([:a, :b])) === (a="psa", b="psb")
-        @test getproperties(SProp(Symbol[])) === (;)
-        @test getproperties(SProp([1, 2])) === ("pi1", "pi2")
-        @test getproperties(SProp(Int[])) === ()
-    end
+@testset "propertynames can be a vector" begin
+    @test getproperties(SProp([:a, :b])) === (a="psa", b="psb")
+    @test getproperties(SProp(Symbol[])) === (;)
+    @test getproperties(SProp([1, 2])) === ("pi1", "pi2")
+    @test getproperties(SProp(Int[])) === ()
 end
 
 function funny_numbers(::Type{Tuple}, n)::Tuple
@@ -484,11 +472,7 @@ end
 @testset "no allocs S2" begin
     obj = S2(3, UInt32(5))
     @test 0 == hot_loop_allocs(constructorof, typeof(obj))
-    if VERSION < v"1.6"
-        @test 32 ≥ hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
-    else
-        @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
-    end
+    @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
 end
 
 @testset "inference" begin
@@ -524,10 +508,8 @@ end
         @inferred getfields(nt)
 
         @inferred constructorof(typeof(nt))
-        if VERSION >= v"1.3"
-            content = funny_numbers(NamedTuple,n)
-            @inferred reconstruct(nt, content)
-        end
+        content = funny_numbers(NamedTuple,n)
+        @inferred reconstruct(nt, content)
         #no_allocs_test(nt, content)
         for k in 0:n
             nt2 = funny_numbers(NamedTuple, k)
@@ -549,12 +531,10 @@ end
     @inferred constructorof(S1)
     @inferred constructorof(S20)
     @inferred constructorof(S40)
-    if VERSION >= v"1.3"
-        @inferred reconstruct(funny_numbers(S,0) , funny_numbers(Tuple,0))
-        @inferred reconstruct(funny_numbers(S,1) , funny_numbers(Tuple,1))
-        @inferred reconstruct(funny_numbers(S,20), funny_numbers(Tuple,20))
-        @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
-    end
+    @inferred reconstruct(funny_numbers(S,0) , funny_numbers(Tuple,0))
+    @inferred reconstruct(funny_numbers(S,1) , funny_numbers(Tuple,1))
+    @inferred reconstruct(funny_numbers(S,20), funny_numbers(Tuple,20))
+    @inferred reconstruct(funny_numbers(S,40), funny_numbers(Tuple,40))
 
     @inferred getfields(funny_numbers(S,0))
     @inferred getfields(funny_numbers(S,1))
@@ -569,45 +549,43 @@ end
 
 using StaticArrays, IntervalSets
 
-if isdefined(Base, :get_extension)  # some 1.9 version
-    @testset "staticarrays" begin
-        sa = @SVector [2, 4, 6, 8]
-        sa2 = ConstructionBase.constructorof(typeof(sa))((3.0, 5.0, 7.0, 9.0))
-        @test sa2 === @SVector [3.0, 5.0, 7.0, 9.0]
+@testset "staticarrays" begin
+    sa = @SVector [2, 4, 6, 8]
+    sa2 = ConstructionBase.constructorof(typeof(sa))((3.0, 5.0, 7.0, 9.0))
+    @test sa2 === @SVector [3.0, 5.0, 7.0, 9.0]
 
-        ma = @MMatrix [2.0 4.0; 6.0 8.0]
-        ma2 = @inferred ConstructionBase.constructorof(typeof(ma))((1, 2, 3, 4))
-        @test ma2 isa MArray{Tuple{2,2},Int,2,4}
-        @test all(ma2 .=== @MMatrix [1 3; 2 4])
+    ma = @MMatrix [2.0 4.0; 6.0 8.0]
+    ma2 = @inferred ConstructionBase.constructorof(typeof(ma))((1, 2, 3, 4))
+    @test ma2 isa MArray{Tuple{2,2},Int,2,4}
+    @test all(ma2 .=== @MMatrix [1 3; 2 4])
 
-        sz = SizedArray{Tuple{2,2}}([1 2;3 4])
-        sz2 = @inferred ConstructionBase.constructorof(typeof(sz))([:a :b; :c :d])
-        @test sz2 == SizedArray{Tuple{2,2}}([:a :b; :c :d])
-        @test typeof(sz2) <: SizedArray{Tuple{2,2},Symbol,2,2}
+    sz = SizedArray{Tuple{2,2}}([1 2;3 4])
+    sz2 = @inferred ConstructionBase.constructorof(typeof(sz))([:a :b; :c :d])
+    @test sz2 == SizedArray{Tuple{2,2}}([:a :b; :c :d])
+    @test typeof(sz2) <: SizedArray{Tuple{2,2},Symbol,2,2}
 
-        for T in (SVector, MVector)
-            @test @inferred(ConstructionBase.constructorof(T)((1, 2, 3)))::T == T((1, 2, 3))
-            @test @inferred(ConstructionBase.constructorof(T{3})((1, 2, 3)))::T == T((1, 2, 3))
-            @test @inferred(ConstructionBase.constructorof(T{3})((1, 2)))::T == T((1, 2))
-            @test @inferred(ConstructionBase.constructorof(T{3, Symbol})((1, 2, 3)))::T == T((1, 2, 3))
-            @test @inferred(ConstructionBase.constructorof(T{3, Symbol})((1, 2)))::T == T((1, 2))
-            @test @inferred(ConstructionBase.constructorof(T{3, X} where {X})((1, 2, 3)))::T == T((1, 2, 3))
-            @test @inferred(ConstructionBase.constructorof(T{3, X} where {X})((1, 2)))::T == T((1, 2))
-            @test @inferred(ConstructionBase.constructorof(T{X, Symbol} where {X})((1, 2, 3)))::T == T((1, 2, 3))
-        end
-
-        sv = SVector(1, 2)
-        @test SVector(3.0, 2.0) === @inferred setproperties(sv, x = 3.0)
-        @test SVector(3.0, 5.0) === @inferred setproperties(sv, x = 3.0, y = 5.0)
-        @test SVector(-1.0, -2.0) === @inferred setproperties(sv, data = (-1.0, -2))
-        @test_throws "does not have properties z" setproperties(sv, z = 3.0)
-        @test_throws "does not have properties z" setproperties(SVector(1, 2, 3, 4, 5), z = 3.0)
+    for T in (SVector, MVector)
+        @test @inferred(ConstructionBase.constructorof(T)((1, 2, 3)))::T == T((1, 2, 3))
+        @test @inferred(ConstructionBase.constructorof(T{3})((1, 2, 3)))::T == T((1, 2, 3))
+        @test @inferred(ConstructionBase.constructorof(T{3})((1, 2)))::T == T((1, 2))
+        @test @inferred(ConstructionBase.constructorof(T{3, Symbol})((1, 2, 3)))::T == T((1, 2, 3))
+        @test @inferred(ConstructionBase.constructorof(T{3, Symbol})((1, 2)))::T == T((1, 2))
+        @test @inferred(ConstructionBase.constructorof(T{3, X} where {X})((1, 2, 3)))::T == T((1, 2, 3))
+        @test @inferred(ConstructionBase.constructorof(T{3, X} where {X})((1, 2)))::T == T((1, 2))
+        @test @inferred(ConstructionBase.constructorof(T{X, Symbol} where {X})((1, 2, 3)))::T == T((1, 2, 3))
     end
 
-    @testset "intervalsets" begin
-        @test constructorof(typeof(1..2))(0.5, 1.5) === 0.5..1.5
-        @test constructorof(typeof(OpenInterval(1, 2)))(0.5, 1.5) === OpenInterval(0.5, 1.5)
-        @test setproperties(1..2, left=0.0) === 0.0..2.0
-        @test setproperties(OpenInterval(1.0, 2.0), left=1, right=5) === OpenInterval(1, 5)
-    end
+    sv = SVector(1, 2)
+    @test SVector(3.0, 2.0) === @inferred setproperties(sv, x = 3.0)
+    @test SVector(3.0, 5.0) === @inferred setproperties(sv, x = 3.0, y = 5.0)
+    @test SVector(-1.0, -2.0) === @inferred setproperties(sv, data = (-1.0, -2))
+    @test_throws "does not have properties z" setproperties(sv, z = 3.0)
+    @test_throws "does not have properties z" setproperties(SVector(1, 2, 3, 4, 5), z = 3.0)
+end
+
+@testset "intervalsets" begin
+    @test constructorof(typeof(1..2))(0.5, 1.5) === 0.5..1.5
+    @test constructorof(typeof(OpenInterval(1, 2)))(0.5, 1.5) === OpenInterval(0.5, 1.5)
+    @test setproperties(1..2, left=0.0) === 0.0..2.0
+    @test setproperties(OpenInterval(1.0, 2.0), left=1, right=5) === OpenInterval(1, 5)
 end

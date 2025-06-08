@@ -14,19 +14,13 @@ jobs:
     strategy:
       matrix:
         version:
-          - '1.0'
-          - '1.6'
           - '1.10'
           - '1'
+          - 'pre'
         os:
           - ubuntu-latest
           - macOS-latest
           - windows-latest
-        exclude:
-          - os: macOS-latest # Apple Silicon
-            version: '1.0'
-          - os: macOS-latest # Apple Silicon
-            version: '1.6'
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2

@@ -12,7 +12,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        julia-version: ['1.6', '1.10', '1']
+        julia-version: ['1.10', '1', 'pre']
         os: [ubuntu-latest]
         package:
           - Accessors
@@ -21,7 +21,7 @@ jobs:
           - Flatten
     steps:
       - uses: actions/checkout@v2
-      - uses: julia-actions/setup-julia@v1
+      - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.julia-version }}
           arch: x64

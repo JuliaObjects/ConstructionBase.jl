@@ -26,10 +26,7 @@ for (name, path) in [
     end
 end
 
-@generated function constructorof(::Type{T}) where T
-    getfield(parentmodule(T), nameof(T))
-end
-
+constructorof(T::Type) = Base.typename(T).wrapper
 constructorof(::Type{<:Tuple}) = tuple
 constructorof(::Type{<:NamedTuple{names}}) where names =
     NamedTupleConstructor{names}()
@@ -48,40 +45,14 @@ getfields(x::NamedTuple) = x
 getproperties(o::NamedTuple) = o
 getproperties(o::Tuple) = o
 
-if VERSION >= v"1.7"
-    function check_properties_are_fields(obj)
-        # for ntuples of symbols `===` is semantically the same as `==`
-        # but triple equals is easier for the compiler to optimize, see #82
-        if propertynames(obj) !== fieldnames(typeof(obj))
-            error("""
-            The `$(nameof(typeof(obj)))` type defines custom properties: it has `propertynames` overloaded.
-            Please define `ConstructionBase.setproperties(::$(nameof(typeof(obj))), ::NamedTuple)` to set its properties.
-            """)
-        end
-    end
-else
-    function is_propertynames_overloaded(T::Type)::Bool
-        T <: NamedTuple && return false
-        which(propertynames, Tuple{T}).sig !== Tuple{typeof(propertynames), Any}
-    end
-
-    @generated function check_properties_are_fields(obj)
-        if is_propertynames_overloaded(obj)
-            return quote
-                T = typeof(obj)
-                msg = """
-                The function `Base.propertynames` was overloaded for type `$T`.
-                Please make sure the following methods are also overloaded for this type:
-                ```julia
-                ConstructionBase.setproperties
-                ConstructionBase.getproperties # optional in VERSION >= julia v1.7
-                ```
-                """
-                error(msg)
-            end
-        else
-            :(nothing)
-        end
+function check_properties_are_fields(obj)
+    # for ntuples of symbols `===` is semantically the same as `==`
+    # but triple equals is easier for the compiler to optimize, see #82
+    if propertynames(obj) !== fieldnames(typeof(obj))
+        error("""
+        The `$(nameof(typeof(obj)))` type defines custom properties: it has `propertynames` overloaded.
+        Please define `ConstructionBase.setproperties(::$(nameof(typeof(obj))), ::NamedTuple)` to set its properties.
+        """)
     end
 end
 
@@ -102,27 +73,13 @@ end
 # otherwise: throw an error
 tuple_or_ntuple(::Type, names, vals) = error("Only Int and Symbol propertynames are supported")
 
-if VERSION >= v"1.7"
-    function getproperties(obj)
-        fnames = propertynames(obj)
-        tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
-    end
-    function getfields(obj::T) where {T}
-        fnames = fieldnames(T)
-        NamedTuple{fnames}(getfield.((obj,), fnames))
-    end
-else
-    @generated function getfields(obj)
-        fnames = fieldnames(obj)
-        fvals = map(fnames) do fname
-             Expr(:call, :getfield, :obj, QuoteNode(fname))
-        end
-        :(NamedTuple{$fnames}(($(fvals...),)))
-    end
-    function getproperties(obj)
-        check_properties_are_fields(obj)
-        getfields(obj)
-    end
+function getproperties(obj)
+    fnames = propertynames(obj)
+    tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
+end
+function getfields(obj::T) where {T}
+    fnames = fieldnames(T)
+    NamedTuple{fnames}(getfield.((obj,), fnames))
 end
 
 ################################################################################
@@ -210,9 +167,5 @@ end
 
 include("nonstandard.jl")
 include("functions.jl")
-
-if !isdefined(Base, :get_extension)
-    include("../ext/ConstructionBaseLinearAlgebraExt.jl")
-end
 
 end # module
