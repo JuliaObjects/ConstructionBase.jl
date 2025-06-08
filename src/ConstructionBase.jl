@@ -168,8 +168,4 @@ end
 include("nonstandard.jl")
 include("functions.jl")
 
-if !isdefined(Base, :get_extension)
-    include("../ext/ConstructionBaseLinearAlgebraExt.jl")
-end
-
 end # module

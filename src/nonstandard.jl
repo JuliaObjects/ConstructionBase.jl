@@ -36,5 +36,5 @@ linrange_constructor(start, stop, len, lendiv) = LinRange(start, stop, len)
 constructorof(::Type{<:LinRange}) = linrange_constructor
 
 ### Expr: args get splatted
-# ::Expr annotation is to make it type-stable on Julia 1.3-
+# ::Expr annotation is to make it type-stable on Julia 1.3-, probably not necessary anymore
 constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
