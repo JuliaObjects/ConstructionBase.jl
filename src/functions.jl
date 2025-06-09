@@ -8,11 +8,10 @@ _isgensym(s::Symbol) = occursin("#", string(s))
 @generated function (fc::FunctionConstructor{F})(args...) where F
     isempty(args) && return Expr(:new, F)
 
-    T = getfield(parentmodule(F), nameof(F))
     # We assume all gensym names are anonymous functions
-    _isgensym(nameof(F)) || return :($T(args...))
+    _isgensym(nameof(F)) || return :($F(args...))
     # Define `new` for rebuilt function type that matches args
-    exp = Expr(:new, Expr(:curly, T, args...))
+    exp = Expr(:new, Expr(:curly, F, args...))
     for i in 1:length(args)
         push!(exp.args, :(args[$i]))
     end
@@ -20,6 +19,6 @@ _isgensym(s::Symbol) = occursin("#", string(s))
 end
 
 function ConstructionBase.constructorof(f::Type{F}) where F <: Function
-    FunctionConstructor{F}()
+    FunctionConstructor{Base.typename(F).wrapper}()
 end
 
