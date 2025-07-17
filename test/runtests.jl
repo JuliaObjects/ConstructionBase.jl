@@ -244,6 +244,14 @@ end
         e = :(a + b)
         @test e == @inferred constructorof(typeof(e))(getfields(e)...)
     end
+
+    @testset "Fix" begin
+        for T in [Base.Fix1, Base.Fix2]
+            f = T(+, 1)
+            @test setproperties(f, x=10) === T(+, 10)
+            @test setproperties(f, f=-) === T(-, 1)
+        end
+    end
 end
 
 @testset "default function constructors" begin

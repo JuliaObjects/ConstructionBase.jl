@@ -1,7 +1,7 @@
 name = "ConstructionBase"
 uuid = "187b0558-2788-49d3-abe0-74a17ed4e7c9"
 authors = ["Takafumi Arakaki", "Rafael Schouten", "Jan Weidner"]
-version = "1.6.0"
+version = "1.6.1"
 
 [weakdeps]
 IntervalSets = "8197267c-284f-5f27-9208-e0e47529a953"
