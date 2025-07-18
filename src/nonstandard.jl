@@ -38,3 +38,8 @@ constructorof(::Type{<:LinRange}) = linrange_constructor
 ### Expr: args get splatted
 # ::Expr annotation is to make it type-stable on Julia 1.3-, probably not necessary anymore
 constructorof(::Type{<:Expr}) = (head, args) -> Expr(head, args...)::Expr
+
+### Base.Fix: the N type parameter cannot be inferred from fields
+if isdefined(Base, :Fix)
+    constructorof(::Type{<:Base.Fix{N}}) where {N} = Base.Fix{N}
+end
