@@ -97,7 +97,7 @@ setproperties(obj::Tuple      , patch::NamedTuple ) = setproperties_tuple(obj   
 @generated function check_patch_fields_exist(obj, patch)
     fnames = fieldnames(obj)
     pnames = fieldnames(patch)
-    pnames ⊆ fnames ? :(nothing) : :(throw(ArgumentError($("Failed to assign fields $pnames to object with fields $fnames."))))
+    pnames ⊆ fnames ? :(Base.nothing) : :(throw(ArgumentError($("Failed to assign fields $pnames to object with fields $fnames."))))
 end
 
 function setproperties(obj::NamedTuple{fields}, patch::NamedTuple{fields}) where {fields}
