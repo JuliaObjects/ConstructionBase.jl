@@ -24,6 +24,64 @@ ConstructionBase.getproperties
 ConstructionBase.setproperties
 ```
 
+## Examples
+
+### A constructor with keyword arguments only
+
+For the sake of this example, assume that the user wants to define the
+type `OnlyKW` to have a constructor that takes *only keyword
+arguments*, presumably to avoid mixups by callers because they have no
+intuitive order.
+
+```jldoctest onlykw
+struct OnlyKW
+    a::Int
+    b::Int
+    OnlyKW(; a::Int, b::Int) = new(a, b)
+end
+
+Base.show(io::IO, x::OnlyKW) = print(io, "OnlyKW(; a = $(x.a), b = $(x.b))")
+
+x = OnlyKW(; a = 1, b = 2)
+
+# output
+
+OnlyKW(; a = 1, b = 2)
+```
+
+We only need to define `ConstructionBase.setproperties`, however, we
+should make sure that it also errors for non-existent property names.
+We use Julia's keyword arguments to deconstruct the `NamedTuple` for
+this purpose:
+
+```jldoctest onlykw
+import ConstructionBase
+
+function ConstructionBase.setproperties(x::OnlyKW, patch::NamedTuple)
+    ConstructionBase.setproperties(x; patch...)
+end
+
+function ConstructionBase.setproperties(x::OnlyKW; a = x.a, b = x.b)
+    OnlyKW(; a = Int(a), b = Int(b))
+end
+
+ConstructionBase.setproperties(x, (a = 3,))
+
+# output
+
+OnlyKW(; a = 3, b = 2)
+```
+
+which then catches invalid properties, too:
+
+```jldoctest onlykw
+ConstructionBase.setproperties(x, (c = 4,))
+
+# output
+
+ERROR: MethodError: no method matching setproperties(::OnlyKW; c::Int64)
+```
+
 ## [Tips for designing types](@id type-tips)
 
 When designing types from scratch, it is often possible to structure the types
