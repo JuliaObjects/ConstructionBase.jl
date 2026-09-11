@@ -30,7 +30,7 @@ Semantically `getfields` boils down to `getfield` and `fieldnames`:
 ```julia
 function getfields(obj::T) where {T}
     fnames = fieldnames(T)
-    NamedTuple{fnames}(getfield.(Ref(obj), fnames))
+    NamedTuple{fnames}(ntuple(i -> getfield(obj, fnames[i]), length(fnames)))
 end
 ```
 However the actual implementation can be more optimized. For builtin types, there can also be deviations from this semantics:
@@ -45,7 +45,7 @@ equivalent to
 ```julia
 function getfields(obj::T) where {T}
     fnames = fieldnames(T)
-    NamedTuple{fnames}(getfield.(Ref(obj), fnames))
+    NamedTuple{fnames}(ntuple(i -> getfield(obj, fnames[i]), length(fnames)))
 end
 ```
 even if that includes private fields of `obj`.

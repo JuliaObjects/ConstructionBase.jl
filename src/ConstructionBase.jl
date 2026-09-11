@@ -73,13 +73,34 @@ end
 # otherwise: throw an error
 tuple_or_ntuple(::Type, names, vals) = error("Only Int and Symbol propertynames are supported")
 
-function getproperties(obj)
-    fnames = propertynames(obj)
-    tuple_or_ntuple(fnames, getproperty.((obj,), fnames))
+# Prefer a generated getfield/getproperty expansion over broadcasting across the
+# property-name tuple. Broadcasting gave type-inference recursion limit issues.
+# See https://discourse.julialang.org/t/139291, SciML/SciMLBase.jl#1595
+@generated function getfields(obj::T) where {T}
+    names = fieldnames(T)
+    vals = Expr(:tuple, (:(getfield(obj, $(QuoteNode(n)))) for n in names)...)
+    return :(NamedTuple{$names}($vals))
 end
-function getfields(obj::T) where {T}
-    fnames = fieldnames(T)
-    NamedTuple{fnames}(getfield.((obj,), fnames))
+
+function getproperties(obj)
+    names = propertynames(obj)
+    # Fast path for the common case: properties are fields.
+    if names === fieldnames(typeof(obj))
+        return getfields(obj)
+    end
+    return _getproperties_from_names(obj, names)
+end
+
+# Custom / non-field `propertynames`: still avoid broadcast; build values with
+# an explicit `ntuple` of `getproperty` calls.
+function _getproperties_from_names(obj, names::Tuple)
+    vals = ntuple(i -> getproperty(obj, names[i]), length(names))
+    return tuple_or_ntuple(names, vals)
+end
+function _getproperties_from_names(obj, names)
+    n = length(names)
+    vals = ntuple(i -> getproperty(obj, @inbounds(names[i])), n)
+    return tuple_or_ntuple(names, vals)
 end
 
 ################################################################################

@@ -34,7 +34,7 @@ julia> getproperties((10,20))
     ```julia
     function getproperties(obj)
         fnames = propertynames(obj)
-        NamedTuple{fnames}(getproperty.(Ref(obj), fnames))
+        NamedTuple{fnames}(ntuple(i -> getproperty(obj, fnames[i]), length(fnames)))
     end
     ```
 2. `getproperties` is defined in relation to `setproperties` so that:
