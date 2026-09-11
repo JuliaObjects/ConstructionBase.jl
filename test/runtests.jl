@@ -361,6 +361,13 @@ Base.getproperty(s::SProp, prop::Symbol) = "ps$prop"
 Base.getproperty(s::SProp, prop::Int) = "pi$prop"
 Base.getproperty(s::SProp, prop::String) = "pstr$prop"
 
+@testset "same field and property names, different values" begin
+    x = SProp((:names,))
+    @test propertynames(x) === fieldnames(typeof(x))
+    @test getfields(x) === (names=(:names,),)
+    @test getproperties(x) == (names="psnames",)
+end
+
 @testset "properties can be numbered" begin
     @test getproperties(SProp((:a, :b))) === (a="psa", b="psb")
     @test getproperties(SProp((1, 2))) === ("pi1", "pi2")
