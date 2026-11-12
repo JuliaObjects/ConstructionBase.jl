@@ -490,6 +490,29 @@ end
     @test 0 == hot_loop_allocs(setproperties, obj, (; a = nothing, b = Int32(6)))
 end
 
+struct IntProps{T<:Tuple}
+    values::T
+end
+Base.propertynames(p::IntProps) = ntuple(identity, Val(length(getfield(p, :values))))
+Base.getproperty(p::IntProps, i::Int) = getfield(p, :values)[i]
+
+@testset "no allocs getproperties with numbered properties" begin
+    t = funny_numbers(Tuple, 20)
+    @test getproperties(IntProps(t)) === t
+    @test 0 == hot_loop_allocs(getproperties, IntProps(t))
+end
+
+struct SUnion
+    a::Union{Nothing, String}
+end
+
+@testset "no allocs getproperties with named properties" begin
+    # few properties: splatting keeps union splitting
+    @test 0 == hot_loop_allocs(getproperties, SUnion("a"))
+    # many properties: more than Julia splats efficiently
+    @test 0 == hot_loop_allocs(getproperties, funny_numbers(S, 40))
+end
+
 @testset "inference" begin
     @testset "Tuple n=$n" for n in [0,1,2,3,4,5,10,20,30,40]
         t = funny_numbers(Tuple,n)
