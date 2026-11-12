@@ -67,7 +67,8 @@ end
     Tuple(vals)
 end
 # names are symbols: return namedtuple
-@inline tuple_or_ntuple(::Type{Symbol}, names, vals::Tuple) = namedtuple(names, vals...)
+# splatting encourages union splitting, but Julia only expands splats of up to 32 elements (`max_tuple_splat`)
+@inline tuple_or_ntuple(::Type{Symbol}, names, vals::Tuple) = length(vals) <= 32 ? namedtuple(names, vals...) : NamedTuple{Tuple(names)}(vals)
 @inline tuple_or_ntuple(::Type{Symbol}, names, vals) = NamedTuple{Tuple(names)}(vals)
 @inline namedtuple(names, vals...) = NamedTuple{Tuple(names)}((vals...,)) # this seemingly unnecessary method encourages union splitting.
 # otherwise: throw an error
