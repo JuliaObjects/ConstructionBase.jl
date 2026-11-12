@@ -63,7 +63,7 @@ end
 
 # names are consecutive integers: return tuple
 @inline function tuple_or_ntuple(::Type{Int}, names, vals)
-    @assert Tuple(names) == ntuple(identity, length(names))
+    @assert Tuple(names) == ntuple(identity, Val(length(names)))
     Tuple(vals)
 end
 # names are symbols: return namedtuple
